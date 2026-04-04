@@ -1,0 +1,4 @@
+packages:
+  - 'codepulse-sdk'
+  - 'codepulse-ingest'
+  - 'codepulse-dashboard'

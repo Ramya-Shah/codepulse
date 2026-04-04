@@ -1,0 +1,9 @@
+{
+  "name": "demo",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "codepulse-sdk": "file:../codepulse-sdk",
+    "express": "^4.19.2"
+  }
+}

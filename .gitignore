@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Builds
+dist/
+build/
+out/
+
+# Databases
+clickhouse_data/
+clickhouse_logs/
+
+# Env & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Workspace
+.gemini/

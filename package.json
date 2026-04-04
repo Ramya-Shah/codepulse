@@ -1,0 +1,8 @@
+{
+  "name": "codepulse",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel -r run dev",
+    "build": "pnpm -r run build"
+  }
+}

@@ -1,0 +1,25 @@
+ingest-1  | {"level":30,"time":1775322727084,"pid":1,"hostname":"798e1fb62f83","msg":"Server listening at http://127.0.0.1:3000"}
+ingest-1  | {"level":30,"time":1775322727084,"pid":1,"hostname":"798e1fb62f83","msg":"Server listening at http://172.19.0.3:3000"}
+ingest-1  | {"level":30,"time":1775322727085,"pid":1,"hostname":"798e1fb62f83","msg":"Server listening on 3000"}
+ingest-1  | {"level":30,"time":1775322729091,"pid":1,"hostname":"798e1fb62f83","reqId":"req-1","req":{"method":"POST","url":"/ingest","host":"ingest:3000","remoteAddress":"172.19.0.4","remotePort":48370},"msg":"incoming request"}
+ingest-1  | {"level":30,"time":1775322729114,"pid":1,"hostname":"798e1fb62f83","reqId":"req-1","res":{"statusCode":200},"responseTime":22.565953999757767,"msg":"request completed"}
+ingest-1  | {"level":30,"time":1775322734089,"pid":1,"hostname":"798e1fb62f83","reqId":"req-2","req":{"method":"POST","url":"/ingest","host":"ingest:3000","remoteAddress":"172.19.0.4","remotePort":48370},"msg":"incoming request"}
+ingest-1  | {"level":30,"time":1775322734106,"pid":1,"hostname":"798e1fb62f83","reqId":"req-2","res":{"statusCode":200},"responseTime":16.677219999954104,"msg":"request completed"}
+ingest-1  | {"level":30,"time":1775322739089,"pid":1,"hostname":"798e1fb62f83","reqId":"req-3","req":{"method":"POST","url":"/ingest","host":"ingest:3000","remoteAddress":"172.19.0.4","remotePort":48370},"msg":"incoming request"}
+ingest-1  | {"level":30,"time":1775322739108,"pid":1,"hostname":"798e1fb62f83","reqId":"req-3","res":{"statusCode":200},"responseTime":18.983826000243425,"msg":"request completed"}
+ingest-1  | {"level":30,"time":1775322744089,"pid":1,"hostname":"798e1fb62f83","reqId":"req-4","req":{"method":"POST","url":"/ingest","host":"ingest:3000","remoteAddress":"172.19.0.4","remotePort":48370},"msg":"incoming request"}
+ingest-1  | {"level":30,"time":1775322744101,"pid":1,"hostname":"798e1fb62f83","reqId":"req-4","res":{"statusCode":200},"responseTime":11.815325999632478,"msg":"request completed"}
+ingest-1  | {"level":30,"time":1775322749086,"pid":1,"hostname":"798e1fb62f83","reqId":"req-5","req":{"method":"POST","url":"/ingest","host":"ingest:3000","remoteAddress":"172.19.0.4","remotePort":48370},"msg":"incoming request"}
+ingest-1  | {"level":30,"time":1775322749097,"pid":1,"hostname":"798e1fb62f83","reqId":"req-5","res":{"statusCode":200},"responseTime":11.000031999778003,"msg":"request completed"}
+ingest-1  | {"level":30,"time":1775322751774,"pid":1,"hostname":"798e1fb62f83","reqId":"req-6","req":{"method":"GET","url":"/live","host":"localhost:3000","remoteAddress":"172.19.0.1","remotePort":35404},"msg":"incoming request"}
+ingest-1  | {"level":50,"time":1775322751777,"pid":1,"hostname":"798e1fb62f83","reqId":"req-6","err":{"type":"TypeError","message":"Cannot read properties of undefined (reading 'on')","stack":"TypeError: Cannot read properties of undefined (reading 'on')\n    at Object.<anonymous> (/app/codepulse-ingest/dist/index.js:119:31)\n    at /app/node_modules/.pnpm/@fastify+websocket@11.2.0/node_modules/@fastify/websocket/index.js:195:34\n    at /app/node_modules/.pnpm/@fastify+websocket@11.2.0/node_modules/@fastify/websocket/index.js:134:7\n    at WebSocketServer.completeUpgrade (/app/node_modules/.pnpm/ws@8.20.0/node_modules/ws/lib/websocket-server.js:442:5)\n    at WebSocketServer.handleUpgrade (/app/node_modules/.pnpm/ws@8.20.0/node_modules/ws/lib/websocket-server.js:350:10)\n    at handleUpgrade (/app/node_modules/.pnpm/@fastify+websocket@11.2.0/node_modules/@fastify/websocket/index.js:127:9)\n    at routeOptions.handler (/app/node_modules/.pnpm/@fastify+websocket@11.2.0/node_modules/@fastify/websocket/index.js:191:9)\n    at preHandlerCallbackInner (/app/node_modules/.pnpm/fastify@5.8.4/node_modules/fastify/lib/handle-request.js:168:24)\n    at preHandlerCallback (/app/node_modules/.pnpm/fastify@5.8.4/node_modules/fastify/lib/handle-request.js:134:5)\n    at validationCompleted (/app/node_modules/.pnpm/fastify@5.8.4/node_modules/fastify/lib/handle-request.js:124:5)"},"msg":"Cannot read properties of undefined (reading 'on')"}
+ingest-1  | /app/codepulse-ingest/dist/index.js:58
+ingest-1  |         if (client.readyState === 1) {
+ingest-1  |                    ^
+ingest-1  | 
+ingest-1  | TypeError: Cannot read properties of undefined (reading 'readyState')
+ingest-1  |     at Timeout._onTimeout (/app/codepulse-ingest/dist/index.js:58:20)
+ingest-1  |     at listOnTimeout (node:internal/timers:581:17)
+ingest-1  |     at process.processTimers (node:internal/timers:519:7)
+ingest-1  | 
+ingest-1  | Node.js v20.20.2

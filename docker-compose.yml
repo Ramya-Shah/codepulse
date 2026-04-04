@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest-alpine
+    environment:
+      - CLICKHOUSE_USER=codepulse
+      - CLICKHOUSE_PASSWORD=codepulse
+      - CLICKHOUSE_DB=codepulse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+
+  ingest:
+    build: 
+      context: .
+      dockerfile: codepulse-ingest/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - CODEPULSE_API_KEY=codepulse-secret-key-12345
+      - CLICKHOUSE_URL=http://clickhouse:8123
+      - CLICKHOUSE_USER=codepulse
+      - CLICKHOUSE_PASSWORD=codepulse
+      - CLICKHOUSE_DB=codepulse
+    depends_on:
+      - clickhouse
+
+
+
+volumes:
+  clickhouse_data:
