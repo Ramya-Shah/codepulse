@@ -124,6 +124,8 @@ const start = async () => {
     await fastify.register(fastifyWebsocket);
 
     fastify.addHook('preHandler', (request, reply, done) => {
+      if (request.method === 'OPTIONS') return done();
+      
       const expectedKey = process.env.CODEPULSE_API_KEY;
       if (!expectedKey) return done();
 

@@ -1,9 +1,9 @@
 const { init } = require('codepulse-sdk');
 init({
-  ingestUrl: 'http://localhost:3000/ingest', // Explicitly connecting to the Dockerized Ingest over localhost
+  ingestUrl: process.env.INGEST_URL || 'http://localhost:3000/ingest',
   projectId: 'demo-project',
-  githubRepo: 'codepulse/demo',
-  apiKey: 'codepulse-secret-key-12345'
+  githubRepo: 'Ramya-Shah/codepulse',
+  apiKey: process.env.API_KEY || 'codepulse-secret-key-12345'
 });
 
 const algo = require('./services/algorithm');
