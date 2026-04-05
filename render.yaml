@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: codepulse-ingest
+    runtime: docker
+    dockerfilePath: ./codepulse-ingest/Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: CODEPULSE_API_KEY
+        generateValue: true
+      - key: CLICKHOUSE_URL
+        sync: false
+      - key: CLICKHOUSE_USER
+        sync: false
+      - key: CLICKHOUSE_PASSWORD
+        sync: false
+      - key: CLICKHOUSE_DB
+        value: codepulse
