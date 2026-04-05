@@ -3,6 +3,19 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "description": "Zero-config runtime observability SDK for Node.js",
+  "keywords": [
+    "observability",
+    "apm",
+    "telemetry",
+    "nodejs",
+    "monitoring"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ramya-Shah/codepulse"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w"

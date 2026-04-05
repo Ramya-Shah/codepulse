@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Activity, FolderTree, Code2, Settings, ExternalLink } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Activity, FolderTree, Code2, ExternalLink } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
