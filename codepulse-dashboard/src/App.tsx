@@ -28,6 +28,7 @@ function App() {
   const [repo, setRepo] = useState(localStorage.getItem('targetRepo') || 'codepulse/demo');
   const [projectId, setProjectId] = useState(localStorage.getItem('projectId') || 'demo-project');
   const [apiKey, setApiKey] = useState(localStorage.getItem('apiKey') || '');
+  const [ingestUrl, setIngestUrl] = useState(localStorage.getItem('ingestUrl') || import.meta.env.VITE_API_URL || 'http://localhost:3000');
 
   const [tree, setTree] = useState<GithubTreeItem[]>([]);
   const [stats, setStats] = useState<FileStat[]>([]);
@@ -42,13 +43,16 @@ function App() {
     localStorage.setItem('targetRepo', repo);
     localStorage.setItem('projectId', projectId);
     localStorage.setItem('apiKey', apiKey);
-  }, [token, repo, projectId, apiKey]);
+    localStorage.setItem('ingestUrl', ingestUrl);
+  }, [token, repo, projectId, apiKey, ingestUrl]);
 
   const connectWebSocket = () => {
     if (wsRef.current) wsRef.current.close();
 
-    // Hardcoding to ingest API on localhost:3000 as per docker compose
-    const ws = new WebSocket(`ws://localhost:3000/live?apiKey=${encodeURIComponent(apiKey)}`);
+    // Derive WebSocket URL from the ingest HTTP URL
+    const wsProtocol = ingestUrl.startsWith('https') ? 'wss' : 'ws';
+    const wsHost = ingestUrl.replace(/^https?:\/\//, '');
+    const ws = new WebSocket(`${wsProtocol}://${wsHost}/live?apiKey=${encodeURIComponent(apiKey)}`);
 
     ws.onopen = () => setIsConnected(true);
     ws.onclose = () => setIsConnected(false);
@@ -103,7 +107,7 @@ function App() {
     try {
       const statsHeaders: any = {};
       if (apiKey) statsHeaders['x-api-key'] = apiKey;
-      const res = await fetch(`http://localhost:3000/stats?projectId=${projectId}&repo=${repo}&hours=24`, {
+      const res = await fetch(`${ingestUrl}/stats?projectId=${projectId}&repo=${repo}&hours=24`, {
         headers: statsHeaders
       });
       if (res.ok) {
@@ -177,6 +181,15 @@ function App() {
               placeholder="secret key"
               value={apiKey}
               onChange={e => setApiKey(e.target.value)}
+            />
+          </div>
+          <div className="input-group">
+            <label>Ingest Server URL</label>
+            <input
+              type="text"
+              placeholder="https://your-app.railway.app"
+              value={ingestUrl}
+              onChange={e => setIngestUrl(e.target.value)}
             />
           </div>
           <div className="input-group">
