@@ -112,11 +112,15 @@ function App() {
       });
       if (res.ok) {
         const data = await res.json();
-        setStats(data.data);
+        const normalizedStats = data.data.map((s: FileStat) => ({
+          ...s,
+          file_path: s.file_path.replace(/\\/g, '/')
+        }));
+        setStats(normalizedStats);
 
         // Merge stat file paths into the tree if not already there
         const existingPaths = new Set(treeDataItems.map(t => t.path));
-        data.data.forEach((stat: FileStat) => {
+        normalizedStats.forEach((stat: FileStat) => {
           if (!existingPaths.has(stat.file_path)) {
             treeDataItems.push({ path: stat.file_path, type: 'blob' });
             existingPaths.add(stat.file_path);
