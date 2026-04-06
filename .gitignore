@@ -24,3 +24,7 @@ Thumbs.db
 
 # Workspace
 .gemini/
+
+# Keys
+deployment-credentials.txt
+CodePulse_Guide.md
