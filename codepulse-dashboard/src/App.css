@@ -3,7 +3,7 @@
 :root {
   --bg-app: #080c14;
   --bg-glow-1: rgba(99, 66, 255, 0.12);
-  --bg-glow-2: rgba(0, 212, 255, 0.07);
+  --bg-glow-2: rgba(0, 229, 160, 0.06);
   
   --panel-bg: rgba(255, 255, 255, 0.04);
   --panel-bg-hover: rgba(255, 255, 255, 0.07);
@@ -16,9 +16,9 @@
   --text-muted: #475569;
 
   --accent: #7c5cfc;
-  --accent-2: #00d4ff;
+  --accent-2: #00e5a0;
   --accent-glow: rgba(124, 92, 252, 0.25);
-  --accent-glow-2: rgba(0, 212, 255, 0.15);
+  --accent-glow-2: rgba(0, 229, 160, 0.15);
 
   --heat-red: #ff4757;
   --heat-red-bg: rgba(255, 71, 87, 0.15);
@@ -26,8 +26,8 @@
   --heat-orange-bg: rgba(255, 165, 2, 0.15);
   --heat-green: #2ed573;
   --heat-green-bg: rgba(46, 213, 115, 0.15);
-  --heat-blue: #1e90ff;
-  --heat-blue-bg: rgba(30, 144, 255, 0.15);
+  --heat-blue: #a78bfa;
+  --heat-blue-bg: rgba(167, 139, 250, 0.15);
 }
 
 * {
@@ -106,7 +106,7 @@ body {
   font-size: 1.6rem;
   font-weight: 800;
   margin: 0;
-  background: linear-gradient(135deg, #a78bfa, #60a5fa, #34d399);
+  background: linear-gradient(135deg, #a78bfa, #7c5cfc, #00e5a0);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
