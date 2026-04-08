@@ -101,6 +101,18 @@ fastify.get('/stats', async (request, reply) => {
   }
 });
 
+fastify.delete('/purge-bad-paths', async (request, reply) => {
+  try {
+    await clickhouse.command({
+      query: `ALTER TABLE function_calls DELETE WHERE position(file_path, '\\\\') > 0 OR NOT startsWith(file_path, 'demo/')`
+    });
+    return { success: true, message: 'Purged rows with bad file paths' };
+  } catch (err) {
+    fastify.log.error(err);
+    reply.status(500).send({ error: 'Purge failed' });
+  }
+});
+
 async function initDb() {
   await clickhouse.command({
     query: `
