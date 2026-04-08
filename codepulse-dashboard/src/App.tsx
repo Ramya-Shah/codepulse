@@ -221,7 +221,7 @@ function App() {
 
         {/* Status indicator */}
         <div className="status-indicator">
-          <div className={`heat-indicator ${isConnected ? 'green' : 'red'}`}></div>
+          <div className={isConnected ? 'status-dot-live' : 'status-dot-off'}></div>
           {isConnected ? 'WebSocket Sync On' : 'Connection Lost'}
         </div>
       </div>
@@ -238,7 +238,7 @@ function App() {
             </div>
             <div className="file-tree">
               {tree.length === 0 ? (
-                <div style={{ color: 'var(--text-muted)', padding: '1rem' }}>No files detected. Sync data.</div>
+                <div className="empty-state">No files detected.<br/>Click Connect &amp; Fetch.</div>
               ) : (
                 tree.map(node => {
                   const heat = getFileHeat(node.path);
@@ -265,13 +265,9 @@ function App() {
             </div>
             <div className="functions-table-container">
               {!selectedFile ? (
-                <div style={{ color: 'var(--text-muted)', padding: '1rem', textAlign: 'center', marginTop: '2rem' }}>
-                  Select a file from the navigator to inspect function telemetry.
-                </div>
+                <div className="empty-state">Select a file from<br/>the navigator to inspect telemetry.</div>
               ) : selectedFileStats.length === 0 ? (
-                <div style={{ color: 'var(--text-muted)', padding: '1rem', textAlign: 'center', marginTop: '2rem' }}>
-                  No telemetry captured for this file yet.
-                </div>
+                <div className="empty-state">No telemetry captured<br/>for this file yet.</div>
               ) : (
                 <table>
                   <thead>
