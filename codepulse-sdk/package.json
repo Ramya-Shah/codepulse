@@ -1,6 +1,6 @@
 {
-  "name": "codepulse-sdk",
-  "version": "1.0.0",
+  "name": "@imramya/codepulse-sdk",
+  "version": "1.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "description": "Zero-config runtime observability SDK for Node.js",

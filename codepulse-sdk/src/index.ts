@@ -150,14 +150,13 @@ export function init(opts: InitOptions) {
         }
       }
     } catch (e) {
-      // Ignore resolution errors during interception
     }
     
     return exports;
   };
 
   intervalId = setInterval(flushStats, 5000);
-  intervalId.unref(); // Don't block event loop exit
+  intervalId.unref(); 
   
   console.log('[CodePulse] SDK initialized for project:', opts.projectId);
 }
