@@ -332,19 +332,19 @@ function App() {
                     <stop offset="95%" stopColor="var(--accent)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="4 4" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="time" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} dy={10} />
-                <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} dx={-10} />
+                <CartesianGrid strokeDasharray="4 4" stroke="#fde8d8" vertical={false} />
+                <XAxis dataKey="time" stroke="#c4a0a0" fontSize={11} tickLine={false} axisLine={false} dy={10} />
+                <YAxis stroke="#c4a0a0" fontSize={11} tickLine={false} axisLine={false} dx={-10} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: 'rgba(20,20,27,0.9)', borderColor: 'var(--panel-border)', borderRadius: '12px', backdropFilter: 'blur(8px)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
-                  itemStyle={{ color: 'var(--text-primary)', fontWeight: 600 }}
-                  labelStyle={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.2rem' }}
+                  contentStyle={{ backgroundColor: '#fff', borderColor: '#fde8d8', borderRadius: '12px', boxShadow: '0 4px 20px rgba(80,20,20,0.1)' }}
+                  itemStyle={{ color: '#2d1515', fontWeight: 600 }}
+                  labelStyle={{ color: '#c4a0a0', fontSize: '0.85rem' }}
                 />
                 <Area
                   type="monotone"
                   dataKey="calls"
-                  stroke="var(--accent)"
-                  strokeWidth={3}
+                  stroke="#E36A6A"
+                  strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#colorCalls)"
                   isAnimationActive={false}
