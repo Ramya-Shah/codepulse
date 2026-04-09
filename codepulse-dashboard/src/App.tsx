@@ -49,9 +49,10 @@ function App() {
   const connectWebSocket = () => {
     if (wsRef.current) wsRef.current.close();
 
-    // Derive WebSocket URL from the ingest HTTP URL
-    const wsProtocol = ingestUrl.startsWith('https') ? 'wss' : 'ws';
-    const wsHost = ingestUrl.replace(/^https?:\/\//, '');
+    // Strip trailing /ingest if user pasted the ingest endpoint directly
+    const baseUrl = ingestUrl.replace(/\/ingest\/?$/, '');
+    const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
+    const wsHost = baseUrl.replace(/^https?:\/\//, '');
     const ws = new WebSocket(`${wsProtocol}://${wsHost}/live?apiKey=${encodeURIComponent(apiKey)}`);
 
     ws.onopen = () => setIsConnected(true);
@@ -64,7 +65,7 @@ function App() {
           setChartData(prev => {
             const timeStr = new Date(payload.timestamp).toLocaleTimeString();
             const next = [...prev, { time: timeStr, calls: payload.calls }];
-            if (next.length > 30) next.shift(); // Keep last 30 points
+            if (next.length > 30) next.shift();
             return next;
           });
         }
@@ -78,6 +79,8 @@ function App() {
 
   const loadData = async () => {
     let treeDataItems: GithubTreeItem[] = [];
+    // Strip trailing /ingest if user pasted the ingest endpoint directly
+    const baseUrl = ingestUrl.replace(/\/ingest\/?$/, '');
 
     // 1. Fetch GitHub Tree
     const [owner, repoName] = repo.split('/');
@@ -107,7 +110,7 @@ function App() {
     try {
       const statsHeaders: any = {};
       if (apiKey) statsHeaders['x-api-key'] = apiKey;
-      const res = await fetch(`${ingestUrl}/stats?projectId=${projectId}&repo=${repo}&hours=24`, {
+      const res = await fetch(`${baseUrl}/stats?projectId=${projectId}&repo=${repo}&hours=24`, {
         headers: statsHeaders
       });
       if (res.ok) {

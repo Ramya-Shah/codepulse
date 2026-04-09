@@ -1,33 +1,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --bg-app: #080c14;
-  --bg-glow-1: rgba(99, 66, 255, 0.12);
-  --bg-glow-2: rgba(0, 229, 160, 0.06);
-  
-  --panel-bg: rgba(255, 255, 255, 0.04);
-  --panel-bg-hover: rgba(255, 255, 255, 0.07);
-  --panel-border: rgba(255, 255, 255, 0.08);
-  --panel-border-glow: rgba(99, 66, 255, 0.5);
-  --panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  --bg-app: #fefce8;
+  --bg-glow-1: rgba(251, 191, 36, 0.15);
+  --bg-glow-2: rgba(249, 115, 22, 0.08);
 
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #475569;
+  --panel-bg: #ffffff;
+  --panel-bg-hover: #fffbeb;
+  --panel-border: #e5e0c8;
+  --panel-border-glow: rgba(249, 115, 22, 0.3);
+  --panel-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 20px rgba(0,0,0,0.05);
 
-  --accent: #7c5cfc;
-  --accent-2: #00e5a0;
-  --accent-glow: rgba(124, 92, 252, 0.25);
-  --accent-glow-2: rgba(0, 229, 160, 0.15);
+  --text-primary: #1c1410;
+  --text-secondary: #6b5738;
+  --text-muted: #a38b68;
 
-  --heat-red: #ff4757;
-  --heat-red-bg: rgba(255, 71, 87, 0.15);
-  --heat-orange: #ffa502;
-  --heat-orange-bg: rgba(255, 165, 2, 0.15);
-  --heat-green: #2ed573;
-  --heat-green-bg: rgba(46, 213, 115, 0.15);
-  --heat-blue: #a78bfa;
-  --heat-blue-bg: rgba(167, 139, 250, 0.15);
+  --accent: #ea6c04;
+  --accent-2: #d97706;
+  --accent-glow: rgba(234, 108, 4, 0.2);
+  --accent-glow-2: rgba(217, 119, 6, 0.12);
+
+  --heat-red: #dc2626;
+  --heat-red-bg: rgba(220, 38, 38, 0.12);
+  --heat-orange: #ea580c;
+  --heat-orange-bg: rgba(234, 88, 12, 0.12);
+  --heat-green: #16a34a;
+  --heat-green-bg: rgba(22, 163, 74, 0.12);
+  --heat-blue: #d97706;
+  --heat-blue-bg: rgba(217, 119, 6, 0.12);
 }
 
 * {
@@ -43,11 +43,6 @@ body {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  /* Animated cosmic background */
-  background-image:
-    radial-gradient(ellipse 80% 60% at 20% 20%, var(--bg-glow-1), transparent),
-    radial-gradient(ellipse 60% 50% at 80% 80%, var(--bg-glow-2), transparent),
-    radial-gradient(ellipse 40% 40% at 60% 10%, rgba(99, 66, 255, 0.07), transparent);
 }
 
 #root {
@@ -106,7 +101,7 @@ body {
   font-size: 1.6rem;
   font-weight: 800;
   margin: 0;
-  background: linear-gradient(135deg, #a78bfa, #7c5cfc, #00e5a0);
+  background: linear-gradient(135deg, #f97316, #fbbf24, #ef4444);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -167,8 +162,8 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #7c5cfc, #5a3fd4);
-  color: white;
+  background: linear-gradient(135deg, #00c864, #00a05a);
+  color: #060d09;
   border: none;
   padding: 0.8rem;
   border-radius: 12px;
@@ -180,7 +175,7 @@ body {
   letter-spacing: 0.01em;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(124, 92, 252, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 200, 100, 0.4);
 }
 
 .btn-primary::before {
@@ -198,7 +193,7 @@ body {
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 28px rgba(124, 92, 252, 0.55);
+  box-shadow: 0 6px 28px rgba(249, 115, 22, 0.55);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -272,7 +267,7 @@ body {
   align-items: center;
   gap: 0.6rem;
   border-bottom: 1px solid var(--panel-border);
-  background: rgba(255,255,255,0.02);
+  background: rgba(255, 160, 60, 0.03);
   letter-spacing: 0.01em;
 }
 
@@ -312,11 +307,11 @@ body {
 }
 
 .file-item.selected {
-  background: rgba(124, 92, 252, 0.12);
-  border-color: rgba(124, 92, 252, 0.3);
-  color: #a78bfa;
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.35);
+  color: #fbbf24;
   font-weight: 600;
-  box-shadow: 0 0 12px rgba(124, 92, 252, 0.12);
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.15);
 }
 
 /* ============================================================
@@ -441,9 +436,9 @@ tr:hover td { background: rgba(255,255,255,0.03); }
 }
 
 .github-link:hover {
-  background: rgba(124, 92, 252, 0.12);
-  border-color: rgba(124, 92, 252, 0.4);
-  color: #a78bfa;
+  background: rgba(249, 115, 22, 0.10);
+  border-color: rgba(249, 115, 22, 0.4);
+  color: #fbbf24;
 }
 
 /* ============================================================
