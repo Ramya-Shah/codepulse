@@ -1,4 +1,5 @@
 import Module from 'module';
+import path from 'path';
 import { performance } from 'perf_hooks';
 import http from 'http';
 import https from 'https';
@@ -8,16 +9,31 @@ export interface InitOptions {
   projectId: string;
   githubRepo: string;
   apiKey?: string;
+  // Directory file paths are reported relative to. Point it at the repo root
+  // so paths line up with the GitHub tree. Defaults to process.cwd().
+  rootDir?: string;
+  flushIntervalMs?: number;
 }
+
+// Upper bounds (ms) of the latency histogram sent with every row. The last
+// bucket catches everything above the final bound. Must match the ingest service.
+export const LATENCY_BUCKETS_MS = [1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
 
 interface CallStat {
   call_count: number;
   total_duration_ms: number;
+  buckets: number[];
   last_timestamp: string;
 }
 
+// How often functions that exist but were never called are re-announced, so
+// they show up as dead code instead of disappearing from the dashboard.
+const INVENTORY_INTERVAL_MS = 60_000;
+
 let options: InitOptions | null = null;
 let statsBuffer = new Map<string, CallStat>();
+const knownFunctions = new Set<string>();
+let lastInventoryAt = 0;
 let intervalId: NodeJS.Timeout | null = null;
 const wrappedCache = new WeakMap<any, any>();
 
@@ -26,17 +42,32 @@ function formatTimestamp(): string {
   return date.toISOString().replace('T', ' ').substring(0, 19);
 }
 
+function emptyStat(): CallStat {
+  return { call_count: 0, total_duration_ms: 0, buckets: new Array(LATENCY_BUCKETS_MS.length + 1).fill(0), last_timestamp: '' };
+}
+
+function statKey(filePath: string, funcName: string): string {
+  const root = options?.rootDir || process.cwd();
+  const relativePath = path.relative(root, filePath).split(path.sep).join('/');
+  return `${relativePath}::${funcName}`;
+}
+
+function bucketIndex(durationMs: number): number {
+  const idx = LATENCY_BUCKETS_MS.findIndex(bound => durationMs <= bound);
+  return idx === -1 ? LATENCY_BUCKETS_MS.length : idx;
+}
+
 function recordStats(filePath: string, funcName: string, durationMs: number) {
   if (!options) return;
-  
-  const relativePath = filePath.split(process.cwd())[1]?.replace(/^[\\\/]/, '') || filePath;
-  const key = `${relativePath}::${funcName}`;
-  const existing = statsBuffer.get(key) || { call_count: 0, total_duration_ms: 0, last_timestamp: '' };
-  
+
+  const key = statKey(filePath, funcName);
+  const existing = statsBuffer.get(key) || emptyStat();
+
   existing.call_count++;
   existing.total_duration_ms += durationMs;
+  existing.buckets[bucketIndex(durationMs)]++;
   existing.last_timestamp = formatTimestamp();
-  
+
   statsBuffer.set(key, existing);
 }
 
@@ -67,8 +98,12 @@ function wrapFunction(fn: Function, filePath: string, funcName: string) {
 
 function wrapExports(exportsObj: any, filePath: string, defaultName: string = 'default'): any {
   if (typeof exportsObj === 'function') {
+      knownFunctions.add(statKey(filePath, exportsObj.name || defaultName));
       return wrapFunction(exportsObj, filePath, exportsObj.name || defaultName);
   } else if (typeof exportsObj === 'object' && exportsObj !== null) {
+      for (const prop of Object.keys(exportsObj)) {
+        if (typeof exportsObj[prop] === 'function') knownFunctions.add(statKey(filePath, prop));
+      }
       return new Proxy(exportsObj, {
         get(target, prop, receiver) {
           const val = Reflect.get(target, prop, receiver);
@@ -83,7 +118,16 @@ function wrapExports(exportsObj: any, filePath: string, defaultName: string = 'd
 }
 
 function flushStats() {
-  if (!options || statsBuffer.size === 0) return;
+  if (!options) return;
+
+  const now = Date.now();
+  if (now - lastInventoryAt >= INVENTORY_INTERVAL_MS) {
+    lastInventoryAt = now;
+    for (const key of knownFunctions) {
+      if (!statsBuffer.has(key)) statsBuffer.set(key, { ...emptyStat(), last_timestamp: formatTimestamp() });
+    }
+  }
+  if (statsBuffer.size === 0) return;
 
   const payload = Array.from(statsBuffer.entries()).map(([key, stat]) => {
     const [file_path, function_name] = key.split('::');
@@ -93,17 +137,18 @@ function flushStats() {
       file_path,
       function_name,
       call_count: stat.call_count,
-      avg_duration_ms: stat.total_duration_ms / stat.call_count,
+      avg_duration_ms: stat.call_count ? stat.total_duration_ms / stat.call_count : 0,
+      duration_buckets: stat.buckets,
       timestamp: stat.last_timestamp,
     };
   });
-  
+
   statsBuffer.clear();
 
   try {
     const url = new URL(options.ingestUrl);
     const client = url.protocol === 'https:' ? https : http;
-    
+
     const headers: any = { 'Content-Type': 'application/json' };
     if (options.apiKey) headers['x-api-key'] = options.apiKey;
 
@@ -115,7 +160,8 @@ function flushStats() {
     req.on('error', (err) => {
       console.error('[CodePulse] Error flushing stats:', err.message);
     });
-    
+    req.on('response', (res) => res.resume());
+
     req.write(JSON.stringify(payload));
     req.end();
   } catch (err) {
@@ -133,11 +179,11 @@ export function init(opts: InitOptions) {
   const originalLoad = (Module as any)._load;
   (Module as any)._load = function(request: string, parent: any, isMain: boolean) {
     const exports = originalLoad.apply(this, arguments);
-    
+
     try {
       if (options && typeof request === 'string') {
         const filename = (Module as any)._resolveFilename(request, parent, isMain);
-        if (filename && !filename.includes('node_modules') && !filename.startsWith('node:') && require('path').isAbsolute(filename)) {
+        if (filename && !filename.includes('node_modules') && !filename.startsWith('node:') && path.isAbsolute(filename)) {
           if ((typeof exports === 'function' || typeof exports === 'object') && exports !== null) {
             if (!wrappedCache.has(exports)) {
               const wrapped = wrapExports(exports, filename);
@@ -151,12 +197,12 @@ export function init(opts: InitOptions) {
       }
     } catch (e) {
     }
-    
+
     return exports;
   };
 
-  intervalId = setInterval(flushStats, 5000);
-  intervalId.unref(); 
-  
+  intervalId = setInterval(flushStats, opts.flushIntervalMs || 5000);
+  intervalId.unref();
+
   console.log('[CodePulse] SDK initialized for project:', opts.projectId);
 }
