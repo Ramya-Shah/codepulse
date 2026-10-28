@@ -100,6 +100,12 @@ importers:
         specifier: ^5.0.0
         version: 5.9.3
 
+  demo:
+    dependencies:
+      codepulse-sdk:
+        specifier: workspace:*
+        version: link:../codepulse-sdk
+
 packages:
 
   '@babel/code-frame@7.29.0':

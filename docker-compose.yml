@@ -1,34 +1,50 @@
-version: '3.8'
-
+# Full local stack: Postgres, the ingest service and the demo traffic app.
+# Copy .env.example to .env to override the defaults.
 services:
-  clickhouse:
-    image: clickhouse/clickhouse-server:latest-alpine
+  postgres:
+    image: postgres:16-alpine
     environment:
-      - CLICKHOUSE_USER=codepulse
-      - CLICKHOUSE_PASSWORD=codepulse
-      - CLICKHOUSE_DB=codepulse
-    ports:
-      - "8123:8123"
-      - "9000:9000"
+      - POSTGRES_USER=codepulse
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-codepulse}
+      - POSTGRES_DB=codepulse
     volumes:
-      - clickhouse_data:/var/lib/clickhouse
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codepulse"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
 
   ingest:
-    build: 
+    build:
       context: .
       dockerfile: codepulse-ingest/Dockerfile
     ports:
       - "3000:3000"
     environment:
-      - CODEPULSE_API_KEY=codepulse-secret-key-12345
-      - CLICKHOUSE_URL=http://clickhouse:8123
-      - CLICKHOUSE_USER=codepulse
-      - CLICKHOUSE_PASSWORD=codepulse
-      - CLICKHOUSE_DB=codepulse
+      - DATABASE_URL=postgres://codepulse:${POSTGRES_PASSWORD:-codepulse}@postgres:5432/codepulse
+      - DATABASE_SSL=false
+      - INGEST_API_KEY=${INGEST_API_KEY:-local-dev-key}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - DEMO_PROJECT_ID=demo-project
+      - DEMO_REPO=Ramya-Shah/CodePulse
+      - DEMO_PATH_PREFIX=demo/
     depends_on:
-      - clickhouse
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
 
-
+  demo:
+    build:
+      context: .
+      dockerfile: demo/Dockerfile
+    environment:
+      - INGEST_URL=http://ingest:3000/ingest
+      - API_KEY=${INGEST_API_KEY:-local-dev-key}
+      - REQUESTS_PER_SECOND=${DEMO_REQUESTS_PER_SECOND:-40}
+    depends_on:
+      - ingest
+    restart: unless-stopped
 
 volumes:
-  clickhouse_data:
+  postgres_data:

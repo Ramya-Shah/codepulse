@@ -2,8 +2,10 @@
   "name": "demo",
   "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
-    "codepulse-sdk": "file:../codepulse-sdk",
-    "express": "^4.19.2"
+    "codepulse-sdk": "workspace:*"
   }
 }
