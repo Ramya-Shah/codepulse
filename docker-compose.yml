@@ -33,6 +33,8 @@ services:
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.5-flash-lite}
       # The AI analysis reads the demo's source from this read-only mount.
       - DEMO_SOURCE_ROOT=/src
+      # Keep a reviewed demo analysis instead of regenerating it daily (720h = 30 days).
+      - DEMO_ANALYSIS_TTL_HOURS=${DEMO_ANALYSIS_TTL_HOURS:-720}
     volumes:
       - ./demo:/src/demo:ro
     depends_on:

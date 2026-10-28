@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-10-28T11:59:28.008Z",
+  "recorded_at": "2026-10-28T12:13:26.966Z",
   "window_minutes": 15,
   "projectId": "demo-project",
   "repo": "Ramya-Shah/CodePulse",
@@ -15,26 +15,10 @@
     {
       "file_path": "demo/services/payment.js",
       "function_name": "processCreditCard",
-      "total_calls": 281,
-      "avg_duration": 189.2413161138849,
-      "p95_duration": 286.08910891089107,
-      "last_seen": "2026-10-28T11:59:00.000Z"
-    },
-    {
-      "file_path": "demo/services/orders.js",
-      "function_name": "getOrderSummary",
-      "total_calls": 3464,
-      "avg_duration": 5.2477869431306035,
-      "p95_duration": 9.536898395721924,
-      "last_seen": "2026-10-28T11:59:00.000Z"
-    },
-    {
-      "file_path": "demo/services/database.js",
-      "function_name": "getOrdersForUser",
-      "total_calls": 11990,
-      "avg_duration": 5.21878126872473,
-      "p95_duration": 9.536994130367624,
-      "last_seen": "2026-10-28T11:59:00.000Z"
+      "total_calls": 276,
+      "avg_duration": 190.8859471557932,
+      "p95_duration": 287.22222222222223,
+      "last_seen": "2026-10-28T12:13:00.000Z"
     },
     {
       "file_path": "demo/services/database.js",
@@ -42,7 +26,7 @@
       "total_calls": 0,
       "avg_duration": 0,
       "p95_duration": 0,
-      "last_seen": "2026-10-28T11:59:00.000Z"
+      "last_seen": "2026-10-28T12:13:00.000Z"
     },
     {
       "file_path": "demo/services/auth.js",
@@ -50,7 +34,7 @@
       "total_calls": 0,
       "avg_duration": 0,
       "p95_duration": 0,
-      "last_seen": "2026-10-28T11:59:00.000Z"
+      "last_seen": "2026-10-28T12:13:00.000Z"
     },
     {
       "file_path": "demo/services/algorithm.js",
@@ -58,47 +42,15 @@
       "total_calls": 0,
       "avg_duration": 0,
       "p95_duration": 0,
-      "last_seen": "2026-10-28T11:59:00.000Z"
-    },
-    {
-      "file_path": "demo/services/cart.js",
-      "function_name": "getCartItems",
-      "total_calls": 22332,
-      "avg_duration": 0.0014349554454929961,
-      "p95_duration": 0.95,
-      "last_seen": "2026-10-28T11:59:00.000Z"
-    },
-    {
-      "file_path": "demo/services/database.js",
-      "function_name": "vacuumDatabaseTables",
-      "total_calls": 0,
-      "avg_duration": 0,
-      "p95_duration": 0,
-      "last_seen": "2026-10-28T11:59:00.000Z"
+      "last_seen": "2026-10-28T12:13:00.000Z"
     },
     {
       "file_path": "demo/services/cart.js",
       "function_name": "calculateTotal",
-      "total_calls": 22332,
-      "avg_duration": 0.001087031971765139,
-      "p95_duration": 0.95,
-      "last_seen": "2026-10-28T11:59:00.000Z"
-    },
-    {
-      "file_path": "demo/services/database.js",
-      "function_name": "queryUsers",
-      "total_calls": 18861,
-      "avg_duration": 4.70417595217697,
-      "p95_duration": 9.4469563687544,
-      "last_seen": "2026-10-28T11:59:00.000Z"
-    },
-    {
-      "file_path": "demo/services/auth.js",
-      "function_name": "verifyToken",
-      "total_calls": 34320,
-      "avg_duration": 4.781301629516029,
-      "p95_duration": 9.50031806615776,
-      "last_seen": "2026-10-28T11:59:00.000Z"
+      "total_calls": 22056,
+      "avg_duration": 0.001036022262434341,
+      "p95_duration": 0.9500000000000001,
+      "last_seen": "2026-10-28T12:13:00.000Z"
     },
     {
       "file_path": "demo/services/cart.js",
@@ -106,7 +58,7 @@
       "total_calls": 0,
       "avg_duration": 0,
       "p95_duration": 0,
-      "last_seen": "2026-10-28T11:59:00.000Z"
+      "last_seen": "2026-10-28T12:13:00.000Z"
     },
     {
       "file_path": "demo/services/algorithm.js",
@@ -114,149 +66,197 @@
       "total_calls": 0,
       "avg_duration": 0,
       "p95_duration": 0,
-      "last_seen": "2026-10-28T11:59:00.000Z"
+      "last_seen": "2026-10-28T12:13:00.000Z"
+    },
+    {
+      "file_path": "demo/services/orders.js",
+      "function_name": "getOrderSummary",
+      "total_calls": 3433,
+      "avg_duration": 5.237062734342567,
+      "p95_duration": 9.539318303811058,
+      "last_seen": "2026-10-28T12:13:00.000Z"
+    },
+    {
+      "file_path": "demo/services/database.js",
+      "function_name": "getOrdersForUser",
+      "total_calls": 11868,
+      "avg_duration": 5.231927144592266,
+      "p95_duration": 9.543167701863354,
+      "last_seen": "2026-10-28T12:13:00.000Z"
+    },
+    {
+      "file_path": "demo/services/cart.js",
+      "function_name": "getCartItems",
+      "total_calls": 22056,
+      "avg_duration": 0.001425634749086525,
+      "p95_duration": 0.9500000000000001,
+      "last_seen": "2026-10-28T12:13:00.000Z"
+    },
+    {
+      "file_path": "demo/services/database.js",
+      "function_name": "vacuumDatabaseTables",
+      "total_calls": 0,
+      "avg_duration": 0,
+      "p95_duration": 0,
+      "last_seen": "2026-10-28T12:13:00.000Z"
+    },
+    {
+      "file_path": "demo/services/database.js",
+      "function_name": "queryUsers",
+      "total_calls": 18721,
+      "avg_duration": 4.685371350782073,
+      "p95_duration": 9.44521410579345,
+      "last_seen": "2026-10-28T12:13:00.000Z"
+    },
+    {
+      "file_path": "demo/services/auth.js",
+      "function_name": "verifyToken",
+      "total_calls": 33924,
+      "avg_duration": 4.790391365494207,
+      "p95_duration": 9.503529713772302,
+      "last_seen": "2026-10-28T12:13:00.000Z"
     },
     {
       "file_path": "demo/services/database.js",
       "function_name": "getProductById",
-      "total_calls": 153441,
-      "avg_duration": 5.736117621971763,
-      "p95_duration": 9.65189387399013,
-      "last_seen": "2026-10-28T11:59:00.000Z"
+      "total_calls": 151808,
+      "avg_duration": 5.725734840344796,
+      "p95_duration": 9.65283234648516,
+      "last_seen": "2026-10-28T12:13:00.000Z"
     },
     {
       "file_path": "demo/services/payment.js",
       "function_name": "processWallet",
-      "total_calls": 3189,
-      "avg_duration": 54.730045414864406,
-      "p95_duration": 76.83630952380952,
-      "last_seen": "2026-10-28T11:59:00.000Z"
+      "total_calls": 3060,
+      "avg_duration": 54.684846434965685,
+      "p95_duration": 76.89655172413794,
+      "last_seen": "2026-10-28T12:13:00.000Z"
     },
     {
       "file_path": "demo/services/orders.js",
       "function_name": "getOrderHistory",
-      "total_calls": 8526,
-      "avg_duration": 109.34550592223654,
-      "p95_duration": 123.79529541825329,
-      "last_seen": "2026-10-28T11:59:00.000Z"
+      "total_calls": 8432,
+      "avg_duration": 109.18077158135763,
+      "p95_duration": 123.7732202967211,
+      "last_seen": "2026-10-28T12:13:00.000Z"
     },
     {
       "file_path": "demo/services/algorithm.js",
       "function_name": "quickHash",
-      "total_calls": 18860,
-      "avg_duration": 0.029286295970864688,
-      "p95_duration": 0.95,
-      "last_seen": "2026-10-28T11:59:00.000Z"
+      "total_calls": 18721,
+      "avg_duration": 0.02829887084011471,
+      "p95_duration": 0.9501522598568224,
+      "last_seen": "2026-10-28T12:13:00.000Z"
     }
   ],
   "rates": [
-    348,
-    348,
-    348,
-    348,
-    348,
-    328,
-    328,
-    328,
-    328,
-    328,
-    365,
-    365,
-    365,
-    365,
-    365,
-    366,
-    366,
-    366,
-    366,
-    366,
-    351,
-    351,
-    351,
-    351,
-    351,
-    306,
-    306,
-    306,
-    306,
-    306,
-    336,
-    336,
-    336,
-    336,
-    336,
-    323,
-    323,
-    323,
-    323,
-    323,
-    327,
-    327,
-    327,
-    327,
-    327,
+    341,
+    341,
     345,
     345,
     345,
     345,
     345,
-    367,
-    367,
-    367,
-    367,
-    367,
-    344,
-    344,
-    344,
-    344,
-    344
+    312,
+    312,
+    312,
+    312,
+    312,
+    349,
+    349,
+    349,
+    349,
+    349,
+    382,
+    382,
+    382,
+    382,
+    382,
+    339,
+    339,
+    339,
+    339,
+    339,
+    377,
+    377,
+    377,
+    377,
+    377,
+    354,
+    354,
+    354,
+    354,
+    354,
+    340,
+    340,
+    340,
+    340,
+    340,
+    360,
+    360,
+    360,
+    360,
+    360,
+    333,
+    333,
+    333,
+    333,
+    333,
+    340,
+    340,
+    340,
+    340,
+    340,
+    341,
+    341,
+    341
   ],
   "analysis": {
     "file_path": "demo/services/orders.js",
     "function_name": "getOrderHistory",
-    "created_at": "2026-10-28T11:55:35.860Z",
+    "created_at": "2026-10-28T12:11:57.749Z",
     "model": "gemini-3.5-flash-lite",
     "evidence": {
       "hotspot": {
-        "calls": 8593,
-        "avg_ms": 109.6,
-        "p95_ms": 123.9,
+        "calls": 8716,
+        "avg_ms": 109.4,
+        "p95_ms": 123.8,
         "file_path": "demo/services/orders.js",
         "function_name": "getOrderHistory",
-        "time_spent_ms": 942058
+        "time_spent_ms": 953257
       },
       "related": [
         {
-          "calls": 154701,
-          "avg_ms": 5.8,
+          "calls": 156894,
+          "avg_ms": 5.7,
           "p95_ms": 9.7,
           "file_path": "demo/services/database.js",
           "function_name": "getProductById",
-          "time_spent_ms": 889566
+          "time_spent_ms": 899827
         },
         {
-          "calls": 19007,
+          "calls": 19396,
           "avg_ms": 4.7,
           "p95_ms": 9.4,
           "file_path": "demo/services/database.js",
           "function_name": "queryUsers",
-          "time_spent_ms": 89789
+          "time_spent_ms": 91068
         },
         {
-          "calls": 12058,
+          "calls": 12251,
           "avg_ms": 5.2,
           "p95_ms": 9.5,
           "file_path": "demo/services/database.js",
           "function_name": "getOrdersForUser",
-          "time_spent_ms": 63057
+          "time_spent_ms": 64234
         },
         {
-          "calls": 3463,
-          "avg_ms": 5.3,
+          "calls": 3534,
+          "avg_ms": 5.2,
           "p95_ms": 9.5,
           "file_path": "demo/services/orders.js",
           "function_name": "getOrderSummary",
-          "time_spent_ms": 18224
+          "time_spent_ms": 18546
         }
       ],
       "source_files": [
@@ -266,18 +266,19 @@
       "window_minutes": 15
     },
     "analysis": {
-      "fix": "Replace the inner loop that calls getProductById sequentially with a single call to getProductsByIds, passing the entire array of product IDs collected from the orders. This utilizes batching to resolve all products in a single database round trip per order instead of querying each product individually.",
+      "fix": "Refactor getOrderHistory to flatten all product IDs from the retrieved orders into a single array and fetch them in one batch using the existing db.getProductsByIds function. Then map the retrieved products back to their respective orders in memory instead of awaiting individual network round trips in a loop.",
       "evidence": [
-        "getOrderHistory total calls: 8593",
-        "getProductById total calls: 154701",
-        "getProductById average latency: 5.8 ms",
-        "Total time spent in getProductById: 889566 ms"
+        "getOrderHistory avg ms: 109.4",
+        "db.getProductById calls: 156894",
+        "db.getProductById calls per getOrderHistory() call: 18",
+        "db.getProductById avg ms: 5.7",
+        "db.getProductById time spent ms: 899827"
       ],
-      "headline": "getOrderHistory is slow because it performs sequential database queries inside nested loops, known as the N+1 query problem.",
+      "headline": "getOrderHistory is slow because it suffers from the sequential N+1 query problem inside a nested loop.",
       "confidence": "high",
-      "fixed_code": "exports.getOrderHistory = async (userId) => {\n  const orders = await db.getOrdersForUser(userId);\n  const result = [];\n  for (const order of orders) {\n    const items = await db.getProductsByIds(order.productIds);\n    result.push({ ...order, items });\n  }\n  return result;\n};",
-      "root_cause": "The function getOrderHistory calls db.getOrdersForUser(userId) once, yielding an average of 4 orders. It then iterates over each order and each product ID, calling db.getProductById(productId) sequentially inside a for loop. With 8593 calls to getOrderHistory and an average of 18 total product lookups per order, this results in 154,701 sequential calls to getProductById, which takes an average of 5.8 ms per call and accounts for 889,566 ms of time spent.",
-      "expected_impact": "Latency for getOrderHistory will drop from an average of 109.6 ms to roughly 30-40 ms, eliminating the excessive database round trips."
+      "fixed_code": "exports.getOrderHistory = async (userId) => {\n  const orders = await db.getOrdersForUser(userId);\n  const allProductIds = orders.flatMap(order => order.productIds);\n  const products = await db.getProductsByIds(allProductIds);\n  const productMap = new Map(products.map(p => [p.id, p]));\n  return orders.map(order => ({\n    ...order,\n    items: order.productIds.map(id => productMap.get(id))\n  }));\n};",
+      "root_cause": "The function getOrderHistory calls db.getOrdersForUser(userId) once (averaging 1.4 calls per execution), returning 4 orders, and then iterates through each order and its productIds array to call db.getProductById(productId) sequentially. Based on the telemetry, this results in an average of 18 calls to db.getProductById per getOrderHistory call, spending an average of 5.7 ms per call and accumulating 899,827 ms of total time across 156,894 calls. Because these product fetch operations are awaited sequentially inside a nested loop rather than batched using the existing db.getProductsByIds function, latency compounds linearly with the number of products.",
+      "expected_impact": "By batching the product lookups, the 18 sequential round trips to getProductById are replaced with a single round trip to getProductsByIds. With db.getOrdersForUser taking 5.2 ms and a batched product fetch taking approximately 6.5 ms, the estimated latency is 11.7 ms."
     }
   }
 }

@@ -63,7 +63,7 @@ const GEMINI_RESPONSE_SCHEMA = {
     evidence: { type: 'ARRAY', items: { type: 'STRING' }, description: 'Specific numbers from the telemetry that support the diagnosis.' },
     fix: { type: 'STRING', description: 'What to change, in two or three sentences.' },
     fixed_code: { type: 'STRING', description: 'The rewritten function only, as plain JavaScript without markdown fences, formatted over multiple lines with 2-space indentation.' },
-    expected_impact: { type: 'STRING', description: 'Estimated latency after the fix, derived from the measured numbers.' },
+    expected_impact: { type: 'STRING', description: 'Estimated latency after the fix: the sequential round trips left after the fix multiplied by their measured avg latency, with the calculation shown.' },
     confidence: { type: 'STRING', enum: ['high', 'medium', 'low'] }
   },
   required: ['headline', 'root_cause', 'evidence', 'fix', 'fixed_code', 'expected_impact', 'confidence']
@@ -117,11 +117,27 @@ function requiredFiles(filePath: string, source: string): string[] {
   return [...found];
 }
 
+// Functions the suggested code calls on required modules (e.g. db.getX())
+// that do not exist in the source: a sign the model invented or misspelled one.
+function unknownModuleCalls(fixedCode: string, hotSource: string, sources: Record<string, string>): string[] {
+  const moduleVars = [...hotSource.matchAll(/(?:const|let|var)\s+(\w+)\s*=\s*require\(/g)].map(m => m[1]);
+  const allSource = Object.values(sources).join('\n');
+  const unknown = new Set<string>();
+  for (const v of moduleVars) {
+    for (const m of fixedCode.matchAll(new RegExp(`\\b${v}\\.(\\w+)\\s*\\(`, 'g'))) {
+      if (!new RegExp(`\\b${m[1]}\\b`).test(allSource)) unknown.add(`${v}.${m[1]}`);
+    }
+  }
+  return [...unknown];
+}
+
 function buildPrompt(evidence: Evidence, sources: Record<string, string>): string {
-  const row = (r: EvidenceRow) => `| ${r.file_path} | ${r.function_name} | ${r.calls} | ${r.avg_ms} | ${r.p95_ms} | ${r.time_spent_ms} |`;
+  // Calls per hotspot call is precomputed so the model doesn't do the division.
+  const perHotspotCall = (r: EvidenceRow) => evidence.hotspot.calls ? round(r.calls / evidence.hotspot.calls) : 0;
+  const row = (r: EvidenceRow) => `| ${r.file_path} | ${r.function_name} | ${r.calls} | ${perHotspotCall(r)} | ${r.avg_ms} | ${r.p95_ms} | ${r.time_spent_ms} |`;
   const table = [
-    '| file | function | calls | avg ms | p95 ms | time spent ms |',
-    '|---|---|---|---|---|---|',
+    `| file | function | calls | calls per ${evidence.hotspot.function_name}() call | avg ms | p95 ms | time spent ms |`,
+    '|---|---|---|---|---|---|---|',
     row(evidence.hotspot),
     ...evidence.related.map(row)
   ].join('\n');
@@ -138,10 +154,11 @@ Source code:
 ${code || '(source unavailable)'}
 
 Explain the root cause of the hotspot's latency. Rules:
-- Ground every claim in the telemetry or the code above. Quote the actual numbers (calls, avg, p95, call ratios).
+- Ground every claim in the telemetry or the code above. Use the precomputed columns instead of doing arithmetic. Quote the actual numbers (calls, avg, p95, call ratios).
 - If the code is unavailable or the data does not support a firm conclusion, say so and set confidence to "low".
 - Do not give generic advice that is not supported by this code.
 - If the pattern has a standard name (for example a known anti-pattern), name it.
+- Refer to functions by name (e.g. "per getX() call"), never as "the hotspot".
 - Recommend one fix: the one with the fewest round trips or the least work, using functions that already exist in the source. Do not hedge or list alternatives.
 - fixed_code must be the corrected function only, using only functions that exist in the source above, formatted over multiple lines with 2-space indentation and line breaks (never on one line).`;
 }
@@ -222,7 +239,12 @@ export function registerAnalysisRoutes(app: FastifyInstance, deps: AnalysisDeps)
       source_files: Object.keys(sources)
     };
 
-    const { analysis, usage } = await callGemini(buildPrompt(evidence, sources));
+    const prompt = buildPrompt(evidence, sources);
+    let { analysis, usage } = await callGemini(prompt);
+    // One retry if the fix calls functions that don't exist in the code.
+    if (hotSource && unknownModuleCalls(analysis.fixed_code, hotSource, sources).length) {
+      ({ analysis, usage } = await callGemini(prompt));
+    }
     const [row] = await sql`
       INSERT INTO ai_analyses (project_id, repo, file_path, function_name, created_at, model, evidence, analysis, usage)
       VALUES (${projectId}, ${repo}, ${hotspot.file_path}, ${hotspot.function_name}, now(), ${GEMINI_MODEL},
