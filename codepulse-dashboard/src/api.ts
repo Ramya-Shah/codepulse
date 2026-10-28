@@ -1,0 +1,93 @@
+export interface FunctionStat {
+  file_path: string;
+  function_name: string;
+  total_calls: number;
+  avg_duration: number;
+  p95_duration: number;
+}
+
+export interface DemoConfig {
+  projectId: string;
+  repo: string;
+  pathPrefix: string;
+}
+
+// Settings for "connect your own project". Nothing here is needed for the demo.
+export interface CustomProject {
+  ingestUrl: string;
+  apiKey: string;
+  repo: string;
+  projectId: string;
+}
+
+// Accepts "host", "https://host" or ".../ingest" and returns "https://host".
+export function normalizeBaseUrl(url: string): string {
+  let base = url.trim().replace(/\/+$/, '').replace(/\/ingest$/, '');
+  if (!/^https?:\/\//.test(base)) {
+    base = (/^(localhost|127\.0\.0\.1)(:|$)/.test(base) ? 'http://' : 'https://') + base;
+  }
+  return base;
+}
+
+export const DEFAULT_API_URL = normalizeBaseUrl(import.meta.env.VITE_API_URL || 'http://localhost:3000');
+
+export function liveSocketUrl(baseUrl: string, projectId: string, apiKey?: string): string {
+  const params = new URLSearchParams({ projectId });
+  if (apiKey) params.set('apiKey', apiKey);
+  return `${baseUrl.replace(/^http/, 'ws')}/live?${params}`;
+}
+
+async function getJson<T>(url: string, apiKey?: string): Promise<T> {
+  const res = await fetch(url, { headers: apiKey ? { 'x-api-key': apiKey } : {} });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json() as Promise<T>;
+}
+
+export const fetchDemoConfig = (baseUrl: string) => getJson<DemoConfig>(`${baseUrl}/demo`);
+
+export async function fetchDemoTree(baseUrl: string, projectId: string): Promise<string[]> {
+  const data = await getJson<{ files: string[] }>(`${baseUrl}/tree?projectId=${encodeURIComponent(projectId)}`);
+  return data.files;
+}
+
+// Public repos only: the browser calls GitHub directly, without a token.
+export async function fetchPublicGithubTree(repo: string): Promise<string[]> {
+  const repoData = await getJson<{ default_branch: string }>(`https://api.github.com/repos/${repo}`);
+  const tree = await getJson<{ tree: { path: string; type: string }[] }>(
+    `https://api.github.com/repos/${repo}/git/trees/${repoData.default_branch}?recursive=1`
+  );
+  return tree.tree.filter(t => t.type === 'blob' && /\.(c|m)?[jt]s$/.test(t.path)).map(t => t.path);
+}
+
+export async function fetchStats(baseUrl: string, projectId: string, repo: string, minutes: number, apiKey?: string): Promise<FunctionStat[]> {
+  const params = new URLSearchParams({ projectId, repo, minutes: String(minutes) });
+  const data = await getJson<{ data: FunctionStat[] }>(`${baseUrl}/stats?${params}`, apiKey);
+  return data.data.map(s => ({
+    ...s,
+    file_path: s.file_path.replace(/\\/g, '/'),
+    total_calls: Number(s.total_calls),
+    avg_duration: Number(s.avg_duration),
+    p95_duration: Number(s.p95_duration)
+  }));
+}
+
+export type Heat = 'slow' | 'medium' | 'fast' | 'dead' | 'none';
+
+export function functionHeat(stat: FunctionStat): Heat {
+  if (stat.total_calls === 0) return 'dead';
+  if (stat.avg_duration > 100) return 'slow';
+  if (stat.avg_duration > 20) return 'medium';
+  return 'fast';
+}
+
+// A file is as hot as its slowest called function.
+export function fileHeat(stats: FunctionStat[]): Heat {
+  if (stats.length === 0) return 'none';
+  const order: Heat[] = ['slow', 'medium', 'fast', 'dead'];
+  const heats = stats.map(functionHeat);
+  return order.find(h => heats.includes(h)) || 'none';
+}
+
+// Time spent = calls x average latency. This is what ranks a hotspot, so a
+// slow-but-rare call does not outrank a moderately slow one on every request.
+export const timeSpent = (s: FunctionStat) => s.total_calls * s.avg_duration;
