@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback, type ChangeEvent } from 'react';
-import { Activity, FolderTree, Code2, ExternalLink, Flame, GitBranch, Package, Settings2, X } from 'lucide-react';
+import { Activity, FolderTree, Code2, ExternalLink, Flame, GitBranch, MessageCircle, Package, Settings2, Sparkles, X } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
@@ -9,6 +9,7 @@ import {
   type CustomProject, type DemoSnapshot, type FunctionStat
 } from './api';
 import { AnalysisPanel } from './AnalysisPanel';
+import { ChatPanel } from './ChatPanel';
 import './App.css';
 
 const REPO_URL = 'https://github.com/Ramya-Shah/CodePulse';
@@ -347,6 +348,7 @@ function Dashboard({ target, setupError, customProject, onConnect }: {
         </div>
       )}
 
+      <div className="layout">
       <section className="hotspot panel">
         <div className="panel-header"><Flame size={18} color="var(--accent)" /> Hottest function right now</div>
         {hotspot ? (
@@ -369,17 +371,35 @@ function Dashboard({ target, setupError, customProject, onConnect }: {
             {status === 'unreachable' ? 'Waiting for the backend…' : loaded ? 'Waiting for the first batch of telemetry…' : <span className="loading-dots">Loading live data</span>}
           </div>
         )}
-        {hotspot && target && (
-          <AnalysisPanel
-            key={`${hotspot.file_path}::${hotspot.function_name}`}
-            baseUrl={target.baseUrl}
-            projectId={target.projectId}
-            repo={target.repo}
-            apiKey={target.apiKey}
-            isDemo={target.isDemo}
-            replayResult={target.replay ? target.replay.analysis : undefined}
-          />
-        )}
+      </section>
+
+      <section className="panel chart-panel">
+        <div className="panel-header"><Activity size={18} color="var(--accent)" /> Function calls per second (live)</div>
+        <div className="chart-wrapper">
+          {chartData.length === 0 ? (
+            <div className="placeholder">{status === 'unreachable' ? 'No connection yet.' : <span className="loading-dots">Waiting for the live stream</span>}</div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="colorCalls" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.6} />
+                    <stop offset="95%" stopColor="var(--accent)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="4 4" stroke="#fde8d8" vertical={false} />
+                <XAxis dataKey="time" stroke="#b08080" fontSize={11} tickLine={false} axisLine={false} dy={10} minTickGap={40} />
+                <YAxis stroke="#b08080" fontSize={11} tickLine={false} axisLine={false} dx={-6} width={44} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#fff', borderColor: '#fde8d8', borderRadius: '12px', boxShadow: '0 4px 20px rgba(80,20,20,0.1)' }}
+                  itemStyle={{ color: '#2d1515', fontWeight: 600 }}
+                  labelStyle={{ color: '#b08080', fontSize: '0.85rem' }}
+                />
+                <Area type="monotone" dataKey="calls" stroke="#E36A6A" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCalls)" isAnimationActive={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
       </section>
 
       <div className="grid">
@@ -431,7 +451,7 @@ function Dashboard({ target, setupError, customProject, onConnect }: {
                     <th className="num">Calls</th>
                     <th className="num">Avg</th>
                     <th className="num">p95</th>
-                    <th className="hide-sm">Source</th>
+                    <th className="hide-sm"><span className="sr-only">Source</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -448,8 +468,8 @@ function Dashboard({ target, setupError, customProject, onConnect }: {
                         <td className="num"><span className={`metric-badge ${heat}`}>{heat === 'dead' ? 'unused' : formatMs(stat.avg_duration)}</span></td>
                         <td className="num muted">{stat.total_calls ? formatMs(stat.p95_duration) : '–'}</td>
                         <td className="hide-sm">
-                          <a href={sourceLink(stat.file_path)} target="_blank" rel="noreferrer" className="github-link">
-                            Code <ExternalLink size={12} />
+                          <a href={sourceLink(stat.file_path)} target="_blank" rel="noreferrer" className="github-link" title={`View ${stat.file_path} on GitHub`} aria-label={`View ${stat.function_name} source on GitHub`}>
+                            <ExternalLink size={13} />
                           </a>
                         </td>
                       </tr>
@@ -462,34 +482,11 @@ function Dashboard({ target, setupError, customProject, onConnect }: {
         </section>
       </div>
 
-      <section className="panel chart-panel">
-        <div className="panel-header"><Activity size={18} color="var(--accent)" /> Function calls per second (live)</div>
-        <div className="chart-wrapper">
-          {chartData.length === 0 ? (
-            <div className="placeholder">{status === 'unreachable' ? 'No connection yet.' : <span className="loading-dots">Waiting for the live stream</span>}</div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorCalls" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.6} />
-                    <stop offset="95%" stopColor="var(--accent)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="4 4" stroke="#fde8d8" vertical={false} />
-                <XAxis dataKey="time" stroke="#b08080" fontSize={11} tickLine={false} axisLine={false} dy={10} minTickGap={40} />
-                <YAxis stroke="#b08080" fontSize={11} tickLine={false} axisLine={false} dx={-6} width={44} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#fff', borderColor: '#fde8d8', borderRadius: '12px', boxShadow: '0 4px 20px rgba(80,20,20,0.1)' }}
-                  itemStyle={{ color: '#2d1515', fontWeight: 600 }}
-                  labelStyle={{ color: '#b08080', fontSize: '0.85rem' }}
-                />
-                <Area type="monotone" dataKey="calls" stroke="#E36A6A" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCalls)" isAnimationActive={false} />
-              </AreaChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </section>
+      <aside className="side panel">
+        <SidePanel target={target} hotspot={hotspot} />
+      </aside>
+      </div>
+
 
       {showConnect && (
         <ConnectDialog
@@ -499,6 +496,52 @@ function Dashboard({ target, setupError, customProject, onConnect }: {
         />
       )}
     </div>
+  );
+}
+
+// Right-hand column: the AI analysis of the hotspot, and a chat that answers
+// questions about the code. Stays in view while the page scrolls.
+function SidePanel({ target, hotspot }: { target: Target | null; hotspot: FunctionStat | null }) {
+  const [tab, setTab] = useState<'analysis' | 'chat'>('analysis');
+
+  return (
+    <>
+      <div className="side-tabs" role="tablist">
+        <button role="tab" aria-selected={tab === 'analysis'} className={tab === 'analysis' ? 'active' : ''} onClick={() => setTab('analysis')}>
+          <Sparkles size={15} /> AI root cause
+        </button>
+        <button role="tab" aria-selected={tab === 'chat'} className={tab === 'chat' ? 'active' : ''} onClick={() => setTab('chat')}>
+          <MessageCircle size={15} /> Ask about the code
+        </button>
+      </div>
+      <div className="side-body">
+        {!target ? (
+          <div className="placeholder"><span className="loading-dots">Connecting</span></div>
+        ) : tab === 'analysis' ? (
+          hotspot ? (
+            <AnalysisPanel
+              key={`${hotspot.file_path}::${hotspot.function_name}`}
+              baseUrl={target.baseUrl}
+              projectId={target.projectId}
+              repo={target.repo}
+              apiKey={target.apiKey}
+              isDemo={target.isDemo}
+              replayResult={target.replay ? target.replay.analysis : undefined}
+            />
+          ) : (
+            <div className="placeholder">The analysis appears once telemetry arrives.</div>
+          )
+        ) : (
+          <ChatPanel
+            baseUrl={target.baseUrl}
+            projectId={target.projectId}
+            repo={target.repo}
+            apiKey={target.apiKey}
+            replayAnswers={target.replay ? target.replay.chat || [] : undefined}
+          />
+        )}
+      </div>
+    </>
   );
 }
 

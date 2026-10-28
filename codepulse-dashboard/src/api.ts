@@ -152,10 +152,39 @@ export interface DemoSnapshot {
   stats: FunctionStat[];
   rates: number[];
   analysis: AnalysisResult | null;
+  // Recorded answers to the suggested chat questions.
+  chat?: { question: string; answer: string }[];
 }
 
 export async function fetchSnapshot(): Promise<DemoSnapshot> {
   const res = await fetch(`${import.meta.env.BASE_URL}demo-snapshot.json`);
   if (!res.ok) throw new Error(`Snapshot missing (${res.status})`);
   return res.json();
+}
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  text: string;
+}
+
+export const DEFAULT_SUGGESTIONS = [
+  'Why is getOrderHistory slow?',
+  'What does getProductById do, and how often is it called?',
+  'Which functions are never called?',
+  'How would I fix the slowest function?'
+];
+
+export async function fetchSuggestions(baseUrl: string): Promise<string[]> {
+  const data = await getJson<{ questions: string[] }>(`${baseUrl}/chat/suggestions`);
+  return data.questions;
+}
+
+export async function sendChat(baseUrl: string, projectId: string, repo: string, messages: ChatMessage[], apiKey?: string): Promise<string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (apiKey) headers['x-api-key'] = apiKey;
+  const res = await fetch(`${baseUrl}/chat`, { method: 'POST', headers, body: JSON.stringify({ projectId, repo, messages }) });
+  const body = await res.json().catch(() => ({}));
+  if (res.status === 429 && !body.error) throw new Error('Too many questions in a short time. Please wait a few minutes.');
+  if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+  return body.answer;
 }

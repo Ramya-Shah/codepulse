@@ -5,6 +5,7 @@ import rateLimit from '@fastify/rate-limit';
 import postgres from 'postgres';
 import { z } from 'zod';
 import { initAnalysisTable, registerAnalysisRoutes } from './analysis';
+import { initChatTable, registerChatRoutes } from './chat';
 
 const fastify = Fastify({
   logger: { level: process.env.LOG_LEVEL || 'info' },
@@ -320,7 +321,9 @@ function registerRoutes() {
     }
   });
 
-  registerAnalysisRoutes(fastify, { sql, demo: DEMO, loadStats, canRead, hasValidKey, denyUnauthorized });
+  const aiDeps = { sql, demo: DEMO, loadStats, canRead, hasValidKey, denyUnauthorized };
+  registerAnalysisRoutes(fastify, aiDeps);
+  registerChatRoutes(fastify, aiDeps);
 }
 
 async function initDb() {
@@ -360,6 +363,7 @@ async function initDb() {
   `;
 
   await initAnalysisTable(sql);
+  await initChatTable(sql);
 }
 
 async function pruneOldData() {

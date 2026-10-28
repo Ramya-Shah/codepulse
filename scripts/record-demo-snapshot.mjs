@@ -41,6 +41,19 @@ const [{ files }, { data: stats, window_minutes }, analysis] = await Promise.all
 if (!stats.length) throw new Error('No stats recorded; is the demo app sending data?');
 if (!analysis.result) console.warn('Warning: no cached AI analysis; the replay will have none.');
 
+// Answers to the suggested chat questions (served from the server's cache).
+const { questions } = await getJson('/chat/suggestions');
+const chat = [];
+for (const question of questions) {
+  const res = await fetch(`${apiUrl}/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ projectId: demo.projectId, repo: demo.repo, messages: [{ role: 'user', text: question }] })
+  });
+  if (res.ok) chat.push({ question, answer: (await res.json()).answer });
+  else console.warn(`Warning: no answer recorded for "${question}" (${res.status})`);
+}
+
 const snapshot = {
   recorded_at: new Date().toISOString(),
   window_minutes,
@@ -49,8 +62,9 @@ const snapshot = {
   files,
   stats,
   rates,
-  analysis: analysis.result
+  analysis: analysis.result,
+  chat
 };
 
 await writeFile(out, JSON.stringify(snapshot, null, 2) + '\n');
-console.log(`Wrote ${out}: ${stats.length} functions, ${rates.length}s of rates, analysis: ${analysis.result ? 'yes' : 'no'}`);
+console.log(`Wrote ${out}: ${stats.length} functions, ${rates.length}s of rates, analysis: ${analysis.result ? 'yes' : 'no'}, chat answers: ${chat.length}`);

@@ -9,8 +9,8 @@ import type { FunctionStats } from './index';
 // Results are cached in Postgres so the public demo costs at most one model
 // call per DEMO_ANALYSIS_TTL_HOURS, however many people open it.
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+export const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+export const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 const DEMO_ANALYSIS_TTL_HOURS = Number(process.env.DEMO_ANALYSIS_TTL_HOURS || 24);
 // Local checkout used for the demo's source instead of GitHub, when set.
 const DEMO_SOURCE_ROOT = process.env.DEMO_SOURCE_ROOT || '';
@@ -69,8 +69,8 @@ const GEMINI_RESPONSE_SCHEMA = {
   required: ['headline', 'root_cause', 'evidence', 'fix', 'fixed_code', 'expected_impact', 'confidence']
 };
 
-const timeSpent = (s: FunctionStats) => s.total_calls * s.avg_duration;
-const round = (n: number) => Math.round(n * 10) / 10;
+export const timeSpent = (s: FunctionStats) => s.total_calls * s.avg_duration;
+export const round = (n: number) => Math.round(n * 10) / 10;
 
 function toEvidenceRow(s: FunctionStats): EvidenceRow {
   return {
@@ -83,12 +83,12 @@ function toEvidenceRow(s: FunctionStats): EvidenceRow {
   };
 }
 
-function findHotspot(stats: FunctionStats[]): FunctionStats | null {
+export function findHotspot(stats: FunctionStats[]): FunctionStats | null {
   const called = stats.filter(s => s.total_calls > 0);
   return called.length ? called.reduce((a, b) => (timeSpent(b) > timeSpent(a) ? b : a)) : null;
 }
 
-async function readSource(projectId: string, repo: string, filePath: string, demoProjectId: string): Promise<string | null> {
+export async function readSource(projectId: string, repo: string, filePath: string, demoProjectId: string): Promise<string | null> {
   try {
     if (projectId === demoProjectId && DEMO_SOURCE_ROOT) {
       const root = path.resolve(DEMO_SOURCE_ROOT);
