@@ -31,8 +31,9 @@ function renderAnswer(text: string): ReactNode[] {
 }
 
 function inline(text: string): ReactNode[] {
-  return text.split(/(`[^`]+`|\*\*[^*]+\*\*)/).map((part, i) => {
+  return text.split(/(`[^`]+`|\*\*[^*]+\*\*|<code>[^<]+<\/code>)/).map((part, i) => {
     if (part.startsWith('`') && part.endsWith('`')) return <code key={i}>{part.slice(1, -1)}</code>;
+    if (part.startsWith('<code>')) return <code key={i}>{part.slice(6, -7)}</code>;
     if (part.startsWith('**') && part.endsWith('**')) return <strong key={i}>{part.slice(2, -2)}</strong>;
     return part;
   });
