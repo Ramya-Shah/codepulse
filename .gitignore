@@ -28,3 +28,5 @@ Thumbs.db
 # Keys
 deployment-credentials.txt
 CodePulse_Guide.md
+.vercel
+.env*.local
