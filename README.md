@@ -15,6 +15,7 @@ The demo runs a small online-store backend ([`demo/`](demo)) with `codepulse-sdk
 1. **Telemetry:** every 5 seconds the SDK sends each function's call count and a latency histogram.
 2. **Hotspot:** the dashboard ranks functions by total time spent (calls × average latency) and flags the top one. Here that's `getOrderHistory()`, at about 110 ms per call.
 3. **AI root cause:** Gemini receives the hotspot's numbers, the numbers for the functions it calls, and the source of the files involved. It returns a diagnosis, the evidence, a fix and an expected impact. The panel shows exactly which data the model was given.
+4. **Ask about the code:** a chat in the same sidebar answers questions such as "Why is getOrderHistory slow?" or "Which functions are never called?" from the live telemetry and the source. The suggested questions are pre-answered, so they reply instantly.
 
 The demo bottleneck is deliberate: `getOrderHistory()` awaits one `getProductById()` per line item, about 18 sequential lookups per request (an N+1 query). The source doesn't label it; the model has to find it from the code and telemetry. We ran the fix it suggested against the demo code: latency went from about 110 ms to about 12 ms, matching its 11.7 ms estimate.
 
@@ -94,7 +95,8 @@ node scripts/record-demo-snapshot.mjs http://localhost:3000 60            # refr
 |---|---|---|
 | `INGEST_API_KEY` | ingest | Key SDKs send in `x-api-key`; required for writes and for reading non-demo projects |
 | `DATABASE_URL`, `DATABASE_SSL` | ingest | Postgres connection (TLS on by default; `false` for a local container) |
-| `GEMINI_API_KEY`, `GEMINI_MODEL` | ingest | AI analysis; leave the key empty to disable it |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | ingest | AI analysis and chat; leave the key empty to disable them |
+| `GEMINI_CHAT_MODELS`, `CHAT_DAILY_LIMIT`, `CHAT_RATE_LIMIT_PER_10_MIN` | ingest | Chat model fallback order (default `gemini-3.5-flash-lite,gemini-3.6-flash`), daily cap on model calls (500), per-IP limit (12) |
 | `DEMO_PROJECT_ID`, `DEMO_REPO`, `DEMO_PATH_PREFIX` | ingest | The one project anyone can read without a key |
 | `GITHUB_TOKEN` | ingest | Optional; raises the GitHub rate limit for the file tree |
 | `VITE_API_URL` | dashboard build | Public URL of the ingest API |
@@ -106,6 +108,7 @@ Secrets live only in the server environment (`.env` is gitignored). The dashboar
 - Instruments CommonJS modules loaded with `require`. ES modules and non-exported inner functions are not traced.
 - p95 values are histogram estimates, not exact percentiles.
 - AI output can vary between runs. The demo shows one reviewed analysis rather than regenerating on every visit.
+- Free-typed chat questions depend on Gemini's response time, which ranged from 3 to 60 seconds during testing. Suggested questions are cached.
 - The benchmarks above come from a single laptop, not a production deployment.
 
 ## Links
