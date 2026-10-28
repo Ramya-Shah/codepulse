@@ -1,0 +1,6 @@
+# HTTPS in front of the ingest API. Caddy gets and renews the certificate
+# automatically; WebSockets (/live) are proxied as-is.
+{$DOMAIN} {
+	encode gzip
+	reverse_proxy ingest:3000
+}

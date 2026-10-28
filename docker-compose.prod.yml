@@ -1,0 +1,54 @@
+# Production overrides for a small always-on VM (e.g. GCP e2-micro, 1 GB RAM).
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Needs in .env: DOMAIN, INGEST_API_KEY, POSTGRES_PASSWORD, GEMINI_API_KEY, CORS_ORIGIN.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN:?set DOMAIN in .env}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - ingest
+    mem_limit: 64m
+    logging: *logging
+    restart: unless-stopped
+
+  postgres:
+    # Sized for ~1 GB RAM: small buffers, few connections.
+    command: postgres -c shared_buffers=64MB -c work_mem=4MB -c max_connections=20 -c effective_cache_size=192MB
+    mem_limit: 320m
+    logging: *logging
+
+  ingest:
+    # Only reachable through Caddy.
+    ports: !reset []
+    environment:
+      - TRUST_PROXY=true
+      - CORS_ORIGIN=${CORS_ORIGIN:-}
+      - LOG_LEVEL=warn
+      - NODE_OPTIONS=--max-old-space-size=160
+    mem_limit: 256m
+    logging: *logging
+
+  demo:
+    environment:
+      - REQUESTS_PER_SECOND=${DEMO_REQUESTS_PER_SECOND:-10}
+      - NODE_OPTIONS=--max-old-space-size=96
+    mem_limit: 128m
+    logging: *logging
+
+volumes:
+  caddy_data:
+  caddy_config:
