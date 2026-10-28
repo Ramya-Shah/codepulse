@@ -62,7 +62,7 @@ const GEMINI_RESPONSE_SCHEMA = {
     root_cause: { type: 'STRING', description: 'Two to four sentences explaining why it is slow, tied to the code.' },
     evidence: { type: 'ARRAY', items: { type: 'STRING' }, description: 'Specific numbers from the telemetry that support the diagnosis.' },
     fix: { type: 'STRING', description: 'What to change, in two or three sentences.' },
-    fixed_code: { type: 'STRING', description: 'The rewritten function only, as plain JavaScript without markdown fences.' },
+    fixed_code: { type: 'STRING', description: 'The rewritten function only, as plain JavaScript without markdown fences, formatted over multiple lines with 2-space indentation.' },
     expected_impact: { type: 'STRING', description: 'Estimated latency after the fix, derived from the measured numbers.' },
     confidence: { type: 'STRING', enum: ['high', 'medium', 'low'] }
   },
@@ -131,7 +131,7 @@ function buildPrompt(evidence: Evidence, sources: Record<string, string>): strin
 
 The hotspot (most total time spent) is ${evidence.hotspot.function_name}() in ${evidence.hotspot.file_path}.
 
-Telemetry (hotspot first, then functions in the files it uses):
+Telemetry (hotspot first, then functions in the files it uses). The file column is where each function is defined, not who calls it; work out callers from the source code:
 ${table}
 
 Source code:
@@ -141,7 +141,9 @@ Explain the root cause of the hotspot's latency. Rules:
 - Ground every claim in the telemetry or the code above. Quote the actual numbers (calls, avg, p95, call ratios).
 - If the code is unavailable or the data does not support a firm conclusion, say so and set confidence to "low".
 - Do not give generic advice that is not supported by this code.
-- fixed_code must be the corrected function only, using only functions that exist in the source above.`;
+- If the pattern has a standard name (for example a known anti-pattern), name it.
+- Recommend one fix: the one with the fewest round trips or the least work, using functions that already exist in the source. Do not hedge or list alternatives.
+- fixed_code must be the corrected function only, using only functions that exist in the source above, formatted over multiple lines with 2-space indentation and line breaks (never on one line).`;
 }
 
 async function callGemini(prompt: string): Promise<{ analysis: Analysis; usage: unknown }> {
