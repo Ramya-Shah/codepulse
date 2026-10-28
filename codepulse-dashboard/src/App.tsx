@@ -270,9 +270,9 @@ function Dashboard({ target, setupError, customProject, onConnect }: {
         </div>
       ) : (
         <ol className="steps">
-          <li><span>1</span>A sample Node.js store app runs with <code>codepulse-sdk</code> loaded. That's the only change to its code.</li>
-          <li><span>2</span>Every 5 seconds the SDK sends call counts and latency for each function it sees.</li>
-          <li><span>3</span>This page ranks functions by total time spent and flags the hotspot. Click a file to drill in.</li>
+          <li><span>1</span><p>A sample Node.js store app runs with <code>codepulse-sdk</code> loaded. That's the only change to its code.</p></li>
+          <li><span>2</span><p>Every 5 seconds the SDK sends call counts and latency for each function it sees.</p></li>
+          <li><span>3</span><p>This page ranks functions by total time spent and flags the hotspot. Click a file to drill in.</p></li>
         </ol>
       )}
 

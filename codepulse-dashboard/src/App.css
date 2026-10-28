@@ -264,8 +264,8 @@ tr:last-child td { border-bottom: none; }
 tr:hover td { background: #FFFBF1; }
 tr.hot-row td { background: var(--heat-red-bg); }
 
-.td-func { font-family: var(--mono); font-weight: 600; font-size: 0.8rem; overflow-wrap: anywhere; }
-.td-file { font-weight: 400; font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem; }
+.td-func { font-family: var(--mono); font-weight: 600; font-size: 0.8rem; white-space: nowrap; }
+.td-file { font-weight: 400; font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem; white-space: normal; overflow-wrap: anywhere; }
 
 .metric-badge {
   display: inline-flex; align-items: center; justify-content: center;
@@ -366,7 +366,9 @@ tr.hot-row td { background: var(--heat-red-bg); }
 @media (max-width: 560px) {
   .app { padding: 1rem; }
   .hide-sm { display: none; }
-  td, th { padding: 0.6rem 0.65rem; }
+  td, th { padding: 0.6rem 0.5rem; }
+  .td-func { font-size: 0.72rem; }
+  .metric-badge { min-width: 0; padding: 0.15rem 0.45rem; }
   .chart-panel { height: 200px; }
 }
 
