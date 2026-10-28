@@ -63,6 +63,11 @@ const RATE_WINDOW_SECONDS = 5;
 const liveClients = new Map<string, Set<any>>();
 const callsThisSecond = new Map<string, number>();
 const recentSeconds = new Map<string, number[]>();
+
+function currentRate(projectId: string): number {
+  const window = recentSeconds.get(projectId) || [];
+  return Math.round(window.reduce((a, b) => a + b, 0) / RATE_WINDOW_SECONDS);
+}
 let lastIngestAt: string | null = null;
 
 function providedKey(request: FastifyRequest): string | undefined {
@@ -229,9 +234,7 @@ function registerRoutes() {
       else recentSeconds.set(projectId, window);
     }
     for (const [projectId, clients] of liveClients) {
-      const window = recentSeconds.get(projectId) || [];
-      const calls = Math.round(window.reduce((a, b) => a + b, 0) / RATE_WINDOW_SECONDS);
-      const message = JSON.stringify({ type: 'rate', calls, timestamp });
+      const message = JSON.stringify({ type: 'rate', calls: currentRate(projectId), timestamp });
       for (const client of clients) {
         if (client.readyState === 1) client.send(message);
       }
@@ -254,6 +257,14 @@ function registerRoutes() {
       request.log.error(err);
       return reply.status(500).send({ error: 'Failed to load stats' });
     }
+  });
+
+  // Same rate as /live, for browsers where WebSockets are blocked.
+  fastify.get('/rate', async (request, reply) => {
+    const parsed = projectQuerySchema.safeParse(request.query);
+    if (!parsed.success) return reply.status(400).send({ error: 'Invalid query params' });
+    if (!canRead(request, parsed.data.projectId)) return denyUnauthorized(reply);
+    return { type: 'rate', calls: currentRate(parsed.data.projectId), timestamp: new Date().toISOString() };
   });
 
   // Public config the dashboard needs to open the demo with no setup.

@@ -4,7 +4,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import {
-  DEFAULT_API_URL, fetchDemoConfig, fetchDemoTree, fetchPublicGithubTree, fetchSnapshot, fetchStats,
+  DEFAULT_API_URL, fetchDemoConfig, fetchDemoTree, fetchPublicGithubTree, fetchRate, fetchSnapshot, fetchStats,
   fileHeat, functionHeat, liveSocketUrl, normalizeBaseUrl, timeSpent,
   type CustomProject, type DemoSnapshot, type FunctionStat
 } from './api';
@@ -15,6 +15,7 @@ const REPO_URL = 'https://github.com/Ramya-Shah/CodePulse';
 const NPM_URL = 'https://www.npmjs.com/package/codepulse-sdk';
 const STATS_WINDOW_MINUTES = 15;
 const STATS_POLL_MS = 5000;
+const RATE_POLL_MS = 2000;
 // How often the demo backend is probed; after two misses in a row the
 // dashboard switches to the recorded snapshot until it answers again.
 const PROBE_MS_LIVE = 15000;
@@ -25,7 +26,7 @@ interface ChartDataPoint {
   calls: number;
 }
 
-type LinkStatus = 'connecting' | 'live' | 'reconnecting' | 'unreachable' | 'replay';
+type LinkStatus = 'connecting' | 'live' | 'unreachable' | 'replay';
 
 // The project being viewed: the public demo, or one the visitor connected.
 interface Target {
@@ -57,9 +58,10 @@ function saveCustomProject(project: CustomProject | null) {
 }
 
 // Streams the per-second call rate and reconnects with backoff when dropped.
+// While the WebSocket is down (some networks and extensions block it), the
+// same rate is polled over HTTPS so the chart keeps moving.
 function useLiveRate(target: Target | null) {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
-  const [socketOpen, setSocketOpen] = useState(false);
 
   useEffect(() => {
     if (!target) return;
@@ -74,28 +76,44 @@ function useLiveRate(target: Target | null) {
     }
     let ws: WebSocket | null = null;
     let retryTimer: number | undefined;
+    let pollTimer: number | undefined;
     let attempt = 0;
     let stopped = false;
+
+    const addPoint = (payload: { calls: number; timestamp: string }) => {
+      setChartData(prev => {
+        const next = [...prev, { time: new Date(payload.timestamp).toLocaleTimeString(), calls: payload.calls }];
+        return next.length > 60 ? next.slice(-60) : next;
+      });
+    };
+
+    const startPolling = () => {
+      if (pollTimer !== undefined) return;
+      const poll = () => fetchRate(target.baseUrl, target.projectId, target.apiKey).then(p => !stopped && addPoint(p)).catch(() => {});
+      poll();
+      pollTimer = window.setInterval(poll, RATE_POLL_MS);
+    };
+
+    const stopPolling = () => {
+      window.clearInterval(pollTimer);
+      pollTimer = undefined;
+    };
 
     const connect = () => {
       ws = new WebSocket(liveSocketUrl(target.baseUrl, target.projectId, target.apiKey));
       ws.onopen = () => {
         attempt = 0;
-        setSocketOpen(true);
+        stopPolling();
       };
       ws.onclose = () => {
-        setSocketOpen(false);
         if (stopped) return;
+        startPolling();
         retryTimer = window.setTimeout(connect, Math.min(1000 * 2 ** attempt++, 15000));
       };
       ws.onmessage = (event) => {
         try {
           const payload = JSON.parse(event.data);
-          if (payload.type !== 'rate') return;
-          setChartData(prev => {
-            const next = [...prev, { time: new Date(payload.timestamp).toLocaleTimeString(), calls: payload.calls }];
-            return next.length > 60 ? next.slice(-60) : next;
-          });
+          if (payload.type === 'rate') addPoint(payload);
         } catch {
           // ignore malformed frames
         }
@@ -106,11 +124,12 @@ function useLiveRate(target: Target | null) {
     return () => {
       stopped = true;
       window.clearTimeout(retryTimer);
+      stopPolling();
       ws?.close();
     };
   }, [target]);
 
-  return { chartData, socketOpen };
+  return { chartData };
 }
 
 // Polls the aggregated per-function stats for the current window.
@@ -249,7 +268,7 @@ function Dashboard({ target, setupError, customProject, onConnect }: {
   }, [target]);
 
   const { stats, loaded, failures } = useStats(target);
-  const { chartData, socketOpen } = useLiveRate(target);
+  const { chartData } = useLiveRate(target);
 
   const status: LinkStatus = target?.replay
     ? 'replay'
@@ -257,7 +276,7 @@ function Dashboard({ target, setupError, customProject, onConnect }: {
     ? 'unreachable'
     : !target || !loaded
       ? 'connecting'
-      : socketOpen ? 'live' : 'reconnecting';
+      : 'live';
 
   // Files from the repo plus any file telemetry mentions that the tree lacks.
   const files = useMemo(() => {
@@ -487,7 +506,6 @@ function StatusPill({ status, isDemo }: { status: LinkStatus; isDemo: boolean })
   const label = {
     connecting: 'Connecting…',
     live: isDemo ? 'Live demo' : 'Live',
-    reconnecting: 'Reconnecting…',
     unreachable: 'Backend offline, retrying',
     replay: 'Recorded demo'
   }[status];

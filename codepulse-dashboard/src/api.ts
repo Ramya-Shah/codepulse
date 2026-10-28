@@ -59,6 +59,10 @@ export async function fetchPublicGithubTree(repo: string): Promise<string[]> {
   return tree.tree.filter(t => t.type === 'blob' && /\.(c|m)?[jt]s$/.test(t.path)).map(t => t.path);
 }
 
+export async function fetchRate(baseUrl: string, projectId: string, apiKey?: string) {
+  return getJson<{ calls: number; timestamp: string }>(`${baseUrl}/rate?projectId=${encodeURIComponent(projectId)}`, apiKey);
+}
+
 export async function fetchStats(baseUrl: string, projectId: string, repo: string, minutes: number, apiKey?: string): Promise<FunctionStat[]> {
   const params = new URLSearchParams({ projectId, repo, minutes: String(minutes) });
   const data = await getJson<{ data: FunctionStat[] }>(`${baseUrl}/stats?${params}`, apiKey);
