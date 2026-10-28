@@ -91,3 +91,48 @@ export function fileHeat(stats: FunctionStat[]): Heat {
 // Time spent = calls x average latency. This is what ranks a hotspot, so a
 // slow-but-rare call does not outrank a moderately slow one on every request.
 export const timeSpent = (s: FunctionStat) => s.total_calls * s.avg_duration;
+
+export interface AnalysisEvidenceRow {
+  file_path: string;
+  function_name: string;
+  calls: number;
+  avg_ms: number;
+  p95_ms: number;
+  time_spent_ms: number;
+}
+
+export interface AnalysisResult {
+  file_path: string;
+  function_name: string;
+  created_at: string;
+  model: string;
+  evidence: {
+    window_minutes: number;
+    hotspot: AnalysisEvidenceRow;
+    related: AnalysisEvidenceRow[];
+    source_files: string[];
+  };
+  analysis: {
+    headline: string;
+    root_cause: string;
+    evidence: string[];
+    fix: string;
+    fixed_code: string;
+    expected_impact: string;
+    confidence: 'high' | 'medium' | 'low';
+  };
+}
+
+export async function fetchAnalysis(baseUrl: string, projectId: string, repo: string, apiKey?: string) {
+  const params = new URLSearchParams({ projectId, repo });
+  return getJson<{ configured: boolean; hotspot: string | null; result: AnalysisResult | null }>(`${baseUrl}/analysis?${params}`, apiKey);
+}
+
+export async function requestAnalysis(baseUrl: string, projectId: string, repo: string, apiKey?: string): Promise<AnalysisResult> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (apiKey) headers['x-api-key'] = apiKey;
+  const res = await fetch(`${baseUrl}/analysis`, { method: 'POST', headers, body: JSON.stringify({ projectId, repo }) });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+  return body.result;
+}

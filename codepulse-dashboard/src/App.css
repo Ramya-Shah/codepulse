@@ -197,6 +197,42 @@ code { font-family: var(--mono); font-size: 0.85em; background: var(--heat-amber
 .heat-text.medium { color: var(--heat-orange); }
 .heat-text.fast { color: var(--heat-green); }
 
+/* ── AI analysis ────────────────────────── */
+.analysis {
+  border-top: 1px dashed #FFB2B2;
+  padding: 1rem 1.1rem 1.1rem;
+  display: flex; flex-direction: column; gap: 0.6rem;
+  font-size: 0.88rem; line-height: 1.55;
+  color: var(--text-primary);
+  max-width: 900px;
+}
+.analysis-title { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #8a3dd1; }
+.analysis-note { color: var(--text-muted); }
+.analysis .btn-primary { align-self: flex-start; display: inline-flex; align-items: center; gap: 0.4rem; }
+.analysis-headline { font-size: 1.02rem; font-weight: 700; }
+.analysis h4 { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-top: 0.3rem; }
+.analysis-evidence { padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.2rem; }
+.analysis-code summary { cursor: pointer; font-weight: 600; color: var(--accent); font-size: 0.84rem; }
+.analysis-code pre {
+  margin-top: 0.5rem;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  background: #2d1515; color: #FFF2D0;
+  font-family: var(--mono); font-size: 0.76rem; line-height: 1.55;
+  overflow-x: auto;
+}
+.analysis-grounding {
+  display: flex; flex-direction: column; gap: 0.3rem;
+  margin-top: 0.3rem; padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  background: var(--bg-app);
+  font-size: 0.78rem; color: var(--text-secondary);
+}
+.confidence { align-self: flex-start; padding: 0.1rem 0.55rem; border-radius: 999px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+.confidence.high { background: var(--heat-green-bg); color: var(--heat-green); }
+.confidence.medium { background: var(--heat-orange-bg); color: var(--heat-orange); }
+.confidence.low { background: var(--heat-red-bg); color: var(--heat-red); }
+
 /* ── Main grid ──────────────────────────── */
 .grid {
   display: grid;

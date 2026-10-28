@@ -4,6 +4,7 @@ import fastifyWebsocket from '@fastify/websocket';
 import rateLimit from '@fastify/rate-limit';
 import postgres from 'postgres';
 import { z } from 'zod';
+import { initAnalysisTable, registerAnalysisRoutes } from './analysis';
 
 const fastify = Fastify({
   logger: { level: process.env.LOG_LEVEL || 'info' },
@@ -104,6 +105,60 @@ function percentileFromBuckets(buckets: number[], q: number): number {
   return LATENCY_BUCKETS_MS[LATENCY_BUCKETS_MS.length - 1];
 }
 
+// Per-function totals and histogram-based p95 for the last `minutes`.
+export interface FunctionStats {
+  file_path: string;
+  function_name: string;
+  total_calls: number;
+  avg_duration: number;
+  p95_duration: number;
+  last_seen: Date;
+}
+
+async function loadStats(projectId: string, repo: string, minutes: number): Promise<FunctionStats[]> {
+  const [totals, buckets] = await Promise.all([
+    sql`
+      SELECT file_path, function_name,
+             SUM(call_count)::bigint AS total_calls,
+             SUM(total_duration_ms) AS total_ms,
+             MAX(minute) AS last_seen
+      FROM function_stats_minute
+      WHERE project_id = ${projectId} AND repo = ${repo}
+        AND minute >= now() - make_interval(mins => ${minutes})
+      GROUP BY file_path, function_name
+    `,
+    sql`
+      SELECT file_path, function_name, u.i::int AS i, SUM(u.v)::bigint AS c
+      FROM function_stats_minute, unnest(buckets) WITH ORDINALITY AS u(v, i)
+      WHERE project_id = ${projectId} AND repo = ${repo}
+        AND minute >= now() - make_interval(mins => ${minutes})
+      GROUP BY file_path, function_name, u.i
+    `
+  ]);
+
+  const histograms = new Map<string, number[]>();
+  for (const b of buckets) {
+    const key = `${b.file_path}\0${b.function_name}`;
+    const hist = histograms.get(key) || new Array(BUCKET_COUNT).fill(0);
+    hist[b.i - 1] = Number(b.c);
+    histograms.set(key, hist);
+  }
+
+  const rows: FunctionStats[] = totals.map(t => {
+    const totalCalls = Number(t.total_calls);
+    const hist = histograms.get(`${t.file_path}\0${t.function_name}`) || new Array(BUCKET_COUNT).fill(0);
+    return {
+      file_path: t.file_path,
+      function_name: t.function_name,
+      total_calls: totalCalls,
+      avg_duration: totalCalls ? Number(t.total_ms) / totalCalls : 0,
+      p95_duration: percentileFromBuckets(hist, 0.95),
+      last_seen: t.last_seen
+    };
+  });
+  return rows;
+}
+
 // Called after plugins are registered so rate limiting applies to every route.
 function registerRoutes() {
   fastify.post('/ingest', async (request, reply) => {
@@ -193,47 +248,7 @@ function registerRoutes() {
     const minutes = parsed.data.minutes ?? (parsed.data.hours ?? 24) * 60;
 
     try {
-      const [totals, buckets] = await Promise.all([
-        sql`
-          SELECT file_path, function_name,
-                 SUM(call_count)::bigint AS total_calls,
-                 SUM(total_duration_ms) AS total_ms,
-                 MAX(minute) AS last_seen
-          FROM function_stats_minute
-          WHERE project_id = ${projectId} AND repo = ${repo}
-            AND minute >= now() - make_interval(mins => ${minutes})
-          GROUP BY file_path, function_name
-        `,
-        sql`
-          SELECT file_path, function_name, u.i::int AS i, SUM(u.v)::bigint AS c
-          FROM function_stats_minute, unnest(buckets) WITH ORDINALITY AS u(v, i)
-          WHERE project_id = ${projectId} AND repo = ${repo}
-            AND minute >= now() - make_interval(mins => ${minutes})
-          GROUP BY file_path, function_name, u.i
-        `
-      ]);
-
-      const histograms = new Map<string, number[]>();
-      for (const b of buckets) {
-        const key = `${b.file_path}\0${b.function_name}`;
-        const hist = histograms.get(key) || new Array(BUCKET_COUNT).fill(0);
-        hist[b.i - 1] = Number(b.c);
-        histograms.set(key, hist);
-      }
-
-      const rows = totals.map(t => {
-        const totalCalls = Number(t.total_calls);
-        const hist = histograms.get(`${t.file_path}\0${t.function_name}`) || new Array(BUCKET_COUNT).fill(0);
-        return {
-          file_path: t.file_path,
-          function_name: t.function_name,
-          total_calls: totalCalls,
-          avg_duration: totalCalls ? Number(t.total_ms) / totalCalls : 0,
-          p95_duration: percentileFromBuckets(hist, 0.95),
-          last_seen: t.last_seen
-        };
-      });
-
+      const rows = await loadStats(projectId, repo, minutes);
       return { data: rows, window_minutes: minutes };
     } catch (err) {
       request.log.error(err);
@@ -293,6 +308,8 @@ function registerRoutes() {
       return reply.status(503).send({ ok: false, db: false, last_ingest_at: lastIngestAt });
     }
   });
+
+  registerAnalysisRoutes(fastify, { sql, demo: DEMO, loadStats, canRead, hasValidKey, denyUnauthorized });
 }
 
 async function initDb() {
@@ -330,6 +347,8 @@ async function initDb() {
       PRIMARY KEY (project_id, repo, minute, file_path, function_name)
     )
   `;
+
+  await initAnalysisTable(sql);
 }
 
 async function pruneOldData() {

@@ -8,6 +8,7 @@ import {
   fileHeat, functionHeat, liveSocketUrl, normalizeBaseUrl, timeSpent,
   type CustomProject, type FunctionStat
 } from './api';
+import { AnalysisPanel } from './AnalysisPanel';
 import './App.css';
 
 const REPO_URL = 'https://github.com/Ramya-Shah/CodePulse';
@@ -299,6 +300,16 @@ function Dashboard({ target, setupError, customProject, onConnect }: {
           <div className="placeholder">
             {status === 'unreachable' ? 'Waiting for the backend…' : loaded ? 'Waiting for the first batch of telemetry…' : <span className="loading-dots">Loading live data</span>}
           </div>
+        )}
+        {hotspot && target && (
+          <AnalysisPanel
+            key={`${hotspot.file_path}::${hotspot.function_name}`}
+            baseUrl={target.baseUrl}
+            projectId={target.projectId}
+            repo={target.repo}
+            apiKey={target.apiKey}
+            isDemo={target.isDemo}
+          />
         )}
       </section>
 

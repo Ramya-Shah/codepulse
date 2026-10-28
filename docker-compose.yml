@@ -29,6 +29,12 @@ services:
       - DEMO_PROJECT_ID=demo-project
       - DEMO_REPO=Ramya-Shah/CodePulse
       - DEMO_PATH_PREFIX=demo/
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.5-flash-lite}
+      # The AI analysis reads the demo's source from this read-only mount.
+      - DEMO_SOURCE_ROOT=/src
+    volumes:
+      - ./demo:/src/demo:ro
     depends_on:
       postgres:
         condition: service_healthy
