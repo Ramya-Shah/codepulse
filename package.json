@@ -4,5 +4,8 @@
   "scripts": {
     "dev": "pnpm --parallel -r run dev",
     "build": "pnpm -r run build"
+  },
+  "devDependencies": {
+    "autocannon": "8.0.0"
   }
 }
