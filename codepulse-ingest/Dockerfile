@@ -1,6 +1,6 @@
 FROM node:20-alpine
 WORKDIR /app
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10.33.0
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY codepulse-sdk ./codepulse-sdk
 COPY codepulse-ingest ./codepulse-ingest
