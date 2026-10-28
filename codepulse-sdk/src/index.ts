@@ -17,7 +17,7 @@ export interface InitOptions {
 
 // Upper bounds (ms) of the latency histogram sent with every row. The last
 // bucket catches everything above the final bound. Must match the ingest service.
-export const LATENCY_BUCKETS_MS = [1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
+export const LATENCY_BUCKETS_MS = [1, 2, 5, 10, 15, 25, 40, 60, 80, 100, 125, 150, 200, 300, 500, 750, 1000, 2500, 5000];
 
 interface CallStat {
   call_count: number;

@@ -29,7 +29,7 @@ const DEMO = {
 };
 
 // Must match LATENCY_BUCKETS_MS in codepulse-sdk.
-const LATENCY_BUCKETS_MS = [1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
+const LATENCY_BUCKETS_MS = [1, 2, 5, 10, 15, 25, 40, 60, 80, 100, 125, 150, 200, 300, 500, 750, 1000, 2500, 5000];
 const BUCKET_COUNT = LATENCY_BUCKETS_MS.length + 1;
 
 const RAW_RETENTION_HOURS = Number(process.env.RAW_RETENTION_HOURS || 48);
@@ -56,9 +56,12 @@ const statsQuerySchema = z.object({
 
 const projectQuerySchema = z.object({ projectId: z.string() });
 
-// Live call rate per project, pushed to dashboards every second.
+// Live call rate per project, pushed to dashboards every second. SDKs flush
+// every 5s, so the rate is averaged over that window instead of spiking.
+const RATE_WINDOW_SECONDS = 5;
 const liveClients = new Map<string, Set<any>>();
 const callsThisSecond = new Map<string, number>();
+const recentSeconds = new Map<string, number[]>();
 let lastIngestAt: string | null = null;
 
 function providedKey(request: FastifyRequest): string | undefined {
@@ -165,8 +168,15 @@ function registerRoutes() {
 
   setInterval(() => {
     const timestamp = new Date().toISOString();
+    for (const projectId of new Set([...recentSeconds.keys(), ...callsThisSecond.keys()])) {
+      const window = [...(recentSeconds.get(projectId) || []), callsThisSecond.get(projectId) || 0].slice(-RATE_WINDOW_SECONDS);
+      if (window.every(c => c === 0)) recentSeconds.delete(projectId);
+      else recentSeconds.set(projectId, window);
+    }
     for (const [projectId, clients] of liveClients) {
-      const message = JSON.stringify({ type: 'rate', calls: callsThisSecond.get(projectId) || 0, timestamp });
+      const window = recentSeconds.get(projectId) || [];
+      const calls = Math.round(window.reduce((a, b) => a + b, 0) / RATE_WINDOW_SECONDS);
+      const message = JSON.stringify({ type: 'rate', calls, timestamp });
       for (const client of clients) {
         if (client.readyState === 1) client.send(message);
       }
