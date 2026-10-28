@@ -4,9 +4,9 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import {
-  DEFAULT_API_URL, fetchDemoConfig, fetchDemoTree, fetchPublicGithubTree, fetchStats,
+  DEFAULT_API_URL, fetchDemoConfig, fetchDemoTree, fetchPublicGithubTree, fetchSnapshot, fetchStats,
   fileHeat, functionHeat, liveSocketUrl, normalizeBaseUrl, timeSpent,
-  type CustomProject, type FunctionStat
+  type CustomProject, type DemoSnapshot, type FunctionStat
 } from './api';
 import { AnalysisPanel } from './AnalysisPanel';
 import './App.css';
@@ -15,13 +15,17 @@ const REPO_URL = 'https://github.com/Ramya-Shah/CodePulse';
 const NPM_URL = 'https://www.npmjs.com/package/codepulse-sdk';
 const STATS_WINDOW_MINUTES = 15;
 const STATS_POLL_MS = 5000;
+// How often the demo backend is probed; after two misses in a row the
+// dashboard switches to the recorded snapshot until it answers again.
+const PROBE_MS_LIVE = 15000;
+const PROBE_MS_DOWN = 3000;
 
 interface ChartDataPoint {
   time: string;
   calls: number;
 }
 
-type LinkStatus = 'connecting' | 'live' | 'reconnecting' | 'unreachable';
+type LinkStatus = 'connecting' | 'live' | 'reconnecting' | 'unreachable' | 'replay';
 
 // The project being viewed: the public demo, or one the visitor connected.
 interface Target {
@@ -30,6 +34,8 @@ interface Target {
   repo: string;
   apiKey?: string;
   isDemo: boolean;
+  // Set when showing the recorded snapshot instead of the live backend.
+  replay?: DemoSnapshot;
 }
 
 function loadCustomProject(): CustomProject | null {
@@ -57,6 +63,15 @@ function useLiveRate(target: Target | null) {
 
   useEffect(() => {
     if (!target) return;
+    if (target.replay) {
+      const rates = target.replay.rates;
+      let i = 0;
+      const id = window.setInterval(() => {
+        const calls = rates[i++ % rates.length];
+        setChartData(prev => [...prev, { time: new Date().toLocaleTimeString(), calls }].slice(-60));
+      }, 1000);
+      return () => window.clearInterval(id);
+    }
     let ws: WebSocket | null = null;
     let retryTimer: number | undefined;
     let attempt = 0;
@@ -107,6 +122,15 @@ function useStats(target: Target | null) {
   useEffect(() => {
     if (!target) return;
     let cancelled = false;
+    if (target.replay) {
+      const snapshotStats = target.replay.stats;
+      Promise.resolve().then(() => {
+        if (cancelled) return;
+        setStats(snapshotStats);
+        setLoaded(true);
+      });
+      return () => { cancelled = true; };
+    }
 
     const load = async () => {
       try {
@@ -140,26 +164,41 @@ function App() {
   const [demoTarget, setDemoTarget] = useState<Target | null>(null);
   const [demoError, setDemoError] = useState<string | null>(null);
 
-  // Ask the backend which project the public demo shows, retrying until it answers.
+  // Keeps probing the demo backend. While it answers, show live data; after
+  // two misses in a row, show the recorded snapshot until it is back.
   useEffect(() => {
     let cancelled = false;
-    const resolve = async () => {
-      let attempt = 0;
+    let mode: 'pending' | 'live' | 'replay' = 'pending';
+    let misses = 0;
+
+    const probe = async () => {
       while (!cancelled) {
         try {
           const config = await fetchDemoConfig(DEFAULT_API_URL);
           if (cancelled) return;
-          setDemoTarget({ baseUrl: DEFAULT_API_URL, projectId: config.projectId, repo: config.repo, isDemo: true });
-          setDemoError(null);
-          return;
+          misses = 0;
+          if (mode !== 'live') {
+            mode = 'live';
+            setDemoTarget({ baseUrl: DEFAULT_API_URL, projectId: config.projectId, repo: config.repo, isDemo: true });
+            setDemoError(null);
+          }
         } catch {
-          attempt++;
-          if (attempt >= 3 && !cancelled) setDemoError('The live demo backend is not responding. Retrying…');
-          await new Promise(r => setTimeout(r, Math.min(2000 * attempt, 10000)));
+          misses++;
+          if (misses >= 2 && mode !== 'replay') {
+            try {
+              const snapshot = await fetchSnapshot();
+              if (cancelled) return;
+              mode = 'replay';
+              setDemoTarget({ baseUrl: DEFAULT_API_URL, projectId: snapshot.projectId, repo: snapshot.repo, isDemo: true, replay: snapshot });
+            } catch {
+              if (!cancelled) setDemoError('The live demo backend is not responding. Retrying…');
+            }
+          }
         }
+        await new Promise(r => setTimeout(r, mode === 'live' ? PROBE_MS_LIVE : PROBE_MS_DOWN));
       }
     };
-    resolve();
+    probe();
     return () => { cancelled = true; };
   }, []);
 
@@ -179,7 +218,7 @@ function App() {
   // Keyed so switching projects starts every panel from a clean state.
   return (
     <Dashboard
-      key={target ? `${target.baseUrl}|${target.projectId}|${target.repo}` : 'pending'}
+      key={target ? `${target.baseUrl}|${target.projectId}|${target.repo}|${target.replay ? 'replay' : 'live'}` : 'pending'}
       target={target}
       setupError={customProject ? null : demoError}
       customProject={customProject}
@@ -202,7 +241,9 @@ function Dashboard({ target, setupError, customProject, onConnect }: {
   useEffect(() => {
     if (!target) return;
     let cancelled = false;
-    const load = target.isDemo ? fetchDemoTree(target.baseUrl, target.projectId) : fetchPublicGithubTree(target.repo);
+    const load = target.replay
+      ? Promise.resolve(target.replay.files)
+      : target.isDemo ? fetchDemoTree(target.baseUrl, target.projectId) : fetchPublicGithubTree(target.repo);
     load.then(files => !cancelled && setTree(files)).catch(() => {});
     return () => { cancelled = true; };
   }, [target]);
@@ -210,7 +251,9 @@ function Dashboard({ target, setupError, customProject, onConnect }: {
   const { stats, loaded, failures } = useStats(target);
   const { chartData, socketOpen } = useLiveRate(target);
 
-  const status: LinkStatus = setupError || failures >= 3
+  const status: LinkStatus = target?.replay
+    ? 'replay'
+    : setupError || failures >= 3
     ? 'unreachable'
     : !target || !loaded
       ? 'connecting'
@@ -278,6 +321,12 @@ function Dashboard({ target, setupError, customProject, onConnect }: {
       )}
 
       {setupError && <div className="notice warn">{setupError}</div>}
+      {target?.replay && (
+        <div className="notice replay">
+          <strong>Recorded demo.</strong> The live backend isn't reachable right now, so this replays real CodePulse data
+          recorded on {new Date(target.replay.recorded_at).toLocaleString()}. It switches back to live data automatically.
+        </div>
+      )}
 
       <section className="hotspot panel">
         <div className="panel-header"><Flame size={18} color="var(--accent)" /> Hottest function right now</div>
@@ -309,6 +358,7 @@ function Dashboard({ target, setupError, customProject, onConnect }: {
             repo={target.repo}
             apiKey={target.apiKey}
             isDemo={target.isDemo}
+            replayResult={target.replay ? target.replay.analysis : undefined}
           />
         )}
       </section>
@@ -438,7 +488,8 @@ function StatusPill({ status, isDemo }: { status: LinkStatus; isDemo: boolean })
     connecting: 'Connecting…',
     live: isDemo ? 'Live demo' : 'Live',
     reconnecting: 'Reconnecting…',
-    unreachable: 'Backend offline, retrying'
+    unreachable: 'Backend offline, retrying',
+    replay: 'Recorded demo'
   }[status];
   return <span className={`status-pill ${status}`}><i />{label}</span>;
 }

@@ -136,3 +136,22 @@ export async function requestAnalysis(baseUrl: string, projectId: string, repo: 
   if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
   return body.result;
 }
+
+// Recorded real data the dashboard replays when the live backend is down.
+// Written by scripts/record-demo-snapshot.mjs.
+export interface DemoSnapshot {
+  recorded_at: string;
+  window_minutes: number;
+  projectId: string;
+  repo: string;
+  files: string[];
+  stats: FunctionStat[];
+  rates: number[];
+  analysis: AnalysisResult | null;
+}
+
+export async function fetchSnapshot(): Promise<DemoSnapshot> {
+  const res = await fetch(`${import.meta.env.BASE_URL}demo-snapshot.json`);
+  if (!res.ok) throw new Error(`Snapshot missing (${res.status})`);
+  return res.json();
+}

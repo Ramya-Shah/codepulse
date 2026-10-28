@@ -8,6 +8,8 @@ interface Props {
   repo: string;
   apiKey?: string;
   isDemo: boolean;
+  // Recorded analysis to show instead of asking the server (replay mode).
+  replayResult?: AnalysisResult | null;
 }
 
 type State =
@@ -28,8 +30,11 @@ function timeAgo(iso: string): string {
 
 // AI root-cause analysis of the current hotspot. The parent keys this by
 // hotspot, so a new hotspot starts from a fresh state.
-export function AnalysisPanel({ baseUrl, projectId, repo, apiKey, isDemo }: Props) {
-  const [state, setState] = useState<State>({ status: 'loading' });
+export function AnalysisPanel({ baseUrl, projectId, repo, apiKey, isDemo, replayResult }: Props) {
+  const isReplay = replayResult !== undefined;
+  const [state, setState] = useState<State>(() =>
+    !isReplay ? { status: 'loading' } : replayResult ? { status: 'ready', result: replayResult } : { status: 'disabled' }
+  );
 
   const generate = useCallback(async () => {
     setState({ status: 'generating' });
@@ -42,6 +47,7 @@ export function AnalysisPanel({ baseUrl, projectId, repo, apiKey, isDemo }: Prop
   }, [baseUrl, projectId, repo, apiKey]);
 
   useEffect(() => {
+    if (isReplay) return;
     let cancelled = false;
     fetchAnalysis(baseUrl, projectId, repo, apiKey)
       .then(data => {
@@ -54,7 +60,7 @@ export function AnalysisPanel({ baseUrl, projectId, repo, apiKey, isDemo }: Prop
       })
       .catch(() => !cancelled && setState({ status: 'idle' }));
     return () => { cancelled = true; };
-  }, [baseUrl, projectId, repo, apiKey, isDemo, generate]);
+  }, [baseUrl, projectId, repo, apiKey, isDemo, isReplay, generate]);
 
   return (
     <div className="analysis">

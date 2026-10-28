@@ -100,6 +100,7 @@ code { font-family: var(--mono); font-size: 0.85em; background: var(--heat-amber
 .status-pill i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: dot-pulse 1.4s ease-in-out infinite; }
 .status-pill.live { background: var(--heat-green-bg); color: var(--heat-green); }
 .status-pill.live i { animation-duration: 2s; }
+.status-pill.replay i { animation: none; }
 .status-pill.unreachable { background: var(--heat-red-bg); color: var(--heat-red); }
 
 /* ── Intro strip ────────────────────────── */
@@ -135,6 +136,7 @@ code { font-family: var(--mono); font-size: 0.85em; background: var(--heat-amber
   border: 1px solid var(--panel-border);
   font-size: 0.85rem;
 }
+.notice.replay { display: block; background: var(--heat-amber-bg); border-color: #f0d890; color: #5c4306; }
 .notice.warn { background: var(--heat-red-bg); border-color: #f5c2c2; color: var(--heat-red); }
 
 .link-button { color: var(--accent); font-weight: 700; font-size: 0.82rem; text-decoration: underline; text-underline-offset: 2px; }
