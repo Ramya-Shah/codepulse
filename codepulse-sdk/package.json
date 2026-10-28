@@ -3,6 +3,9 @@
   "version": "1.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "description": "Zero-config runtime observability SDK for Node.js",
   "keywords": [
     "observability",
@@ -16,12 +19,17 @@
     "type": "git",
     "url": "https://github.com/Ramya-Shah/codepulse"
   },
+  "homepage": "https://codepulse-codepulse-dashboard.vercel.app/",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "prepublishOnly": "tsc"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
     "@types/node": "^20.0.0"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
