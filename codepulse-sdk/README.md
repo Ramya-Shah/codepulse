@@ -2,7 +2,7 @@
 
 Zero-config, function-level performance monitoring for Node.js. One `init()` call times every exported function in your app and streams call counts and latency histograms to a [CodePulse](https://github.com/Ramya-Shah/codepulse) server, whose dashboard highlights the slowest code and can explain the root cause with AI.
 
-**Live demo:** https://codepulse-codepulse-dashboard.vercel.app/
+**Live demo:** https://codepulse-live.vercel.app/
 
 ## Install
 

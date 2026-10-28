@@ -4,7 +4,7 @@
 
 Add one line to a Node.js app and CodePulse times every exported function, finds the one costing the most time, and has an LLM explain why it is slow and how to fix it, based on the measured numbers and the actual source code.
 
-**Live demo:** https://codepulse-codepulse-dashboard.vercel.app/ (no sign-up, no setup; it opens on live data from a sample app)
+**Live demo:** https://codepulse-live.vercel.app/ (no sign-up, no setup; it opens on live data from a sample app)
 
 ![CodePulse dashboard showing getOrderHistory() as the hotspot with an AI root-cause analysis of an N+1 query](docs/dashboard.png)
 
@@ -113,6 +113,6 @@ Secrets live only in the server environment (`.env` is gitignored). The dashboar
 
 ## Links
 
-- **Live demo:** https://codepulse-codepulse-dashboard.vercel.app/
+- **Live demo:** https://codepulse-live.vercel.app/
 - **npm:** https://www.npmjs.com/package/codepulse-sdk
 - **Source:** https://github.com/Ramya-Shah/CodePulse
