@@ -184,7 +184,12 @@ export async function sendChat(baseUrl: string, projectId: string, repo: string,
   if (apiKey) headers['x-api-key'] = apiKey;
   const res = await fetch(`${baseUrl}/chat`, { method: 'POST', headers, body: JSON.stringify({ projectId, repo, messages }) });
   const body = await res.json().catch(() => ({}));
-  if (res.status === 429 && !body.error) throw new Error('Too many questions in a short time. Please wait a few minutes.');
-  if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+  if (!res.ok) {
+    // The server's messages are written for visitors; fall back to the same tone.
+    const fallback = res.status === 429
+      ? "Easy there, profiler! 🕵️ That's a lot of questions in a short time. Take a quick coffee break ☕ and come back in a few minutes."
+      : 'The AI is a bit overwhelmed right now 🥵 Please try again in a minute, or pick a suggested question for an instant answer.';
+    throw new Error(typeof body.error === 'string' && body.error.length > 20 ? body.error : fallback);
+  }
   return body.answer;
 }

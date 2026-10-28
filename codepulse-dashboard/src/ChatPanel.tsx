@@ -12,6 +12,7 @@ interface Props {
 }
 
 const MAX_CHARS = 600;
+const TOO_LONG = `Short and sweet works best here ✂️ Try asking in under ${MAX_CHARS} characters.`;
 const MAX_HISTORY = 8;
 
 // Renders the model's light markdown (code spans, fenced code, bullets) as
@@ -70,8 +71,12 @@ export function ChatPanel({ baseUrl, projectId, repo, apiKey, replayAnswers }: P
   }, [messages, pending]);
 
   const ask = async (question: string) => {
-    const text = question.trim().slice(0, MAX_CHARS);
+    const text = question.trim();
     if (!text || pending) return;
+    if (text.length > MAX_CHARS) {
+      setError(TOO_LONG);
+      return;
+    }
     const history: ChatMessage[] = [...messages, { role: 'user' as const, text }].slice(-MAX_HISTORY);
     setMessages(history);
     setInput('');
@@ -89,7 +94,7 @@ export function ChatPanel({ baseUrl, projectId, repo, apiKey, replayAnswers }: P
       const answer = await sendChat(baseUrl, projectId, repo, history, apiKey);
       setMessages([...history, { role: 'model', text: answer }]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.');
+      setError(err instanceof Error && !/fetch/i.test(err.message) ? err.message : 'The AI is a bit overwhelmed right now 🥵 Please try again in a minute, or pick a suggested question for an instant answer.');
       setMessages(messages);
       setInput(text);
     } finally {
@@ -137,7 +142,6 @@ export function ChatPanel({ baseUrl, projectId, repo, apiKey, replayAnswers }: P
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder={isReplay ? 'Pick a suggested question (backend offline)' : 'Ask why a function is slow…'}
-          maxLength={MAX_CHARS}
           disabled={pending || isReplay}
           aria-label="Ask about the code"
         />

@@ -216,9 +216,10 @@ code { font-family: var(--mono); font-size: 0.85em; background: var(--heat-amber
 .layout > .grid { grid-area: grid; }
 .layout > .side {
   grid-area: side;
-  position: sticky;
-  top: 1rem;
-  height: calc(100vh - 2rem);
+  /* Same height as the left column: size containment keeps the chat's
+     content from stretching the rows, and stretch fills the grid area. */
+  align-self: stretch;
+  contain: size;
   min-height: 520px;
 }
 
@@ -476,7 +477,7 @@ tr.hot-row td { background: var(--heat-red-bg); }
     grid-template-areas: "hot" "side" "chart" "grid";
     grid-template-rows: none;
   }
-  .layout > .side { position: static; height: 560px; min-height: 0; }
+  .layout > .side { height: 560px; min-height: 0; }
 }
 
 @media (max-width: 900px) {

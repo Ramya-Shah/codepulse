@@ -31,6 +31,14 @@ export const SUGGESTED_QUESTIONS = [
   'How would I fix the slowest function?'
 ];
 
+// Messages shown to visitors when a limit is hit or the model can't answer.
+export const CHAT_MESSAGES = {
+  tooMany: "Easy there, profiler! 🕵️ That's a lot of questions in a short time. Take a quick coffee break ☕ and come back in a few minutes.",
+  dailyLimit: "Our AI clocked out for the day 🌙 This demo runs on a limited plan. It'll be back tomorrow; meanwhile, the suggested questions still have answers ready.",
+  modelBusy: 'The AI is a bit overwhelmed right now 🥵 Please try again in a minute, or pick a suggested question for an instant answer.',
+  tooLong: `Short and sweet works best here ✂️ Try asking in under ${MAX_MESSAGE_CHARS} characters.`
+};
+
 const normalize = (q: string) => q.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 export async function initChatTable(sql: Sql) {
@@ -174,10 +182,16 @@ export function registerChatRoutes(app: FastifyInstance, deps: AnalysisDeps) {
   warmSuggestions(app, deps);
 
   app.post('/chat', {
-    config: { rateLimit: { max: Number(process.env.CHAT_RATE_LIMIT_PER_10_MIN || 12), timeWindow: '10 minutes' } }
+    config: {
+      rateLimit: {
+        max: Number(process.env.CHAT_RATE_LIMIT_PER_10_MIN || 12),
+        timeWindow: '10 minutes',
+        errorResponseBuilder: () => ({ statusCode: 429, error: CHAT_MESSAGES.tooMany })
+      }
+    }
   }, async (request, reply) => {
     const parsed = chatSchema.safeParse(request.body);
-    if (!parsed.success) return reply.status(400).send({ error: `Messages must be under ${MAX_MESSAGE_CHARS} characters.` });
+    if (!parsed.success) return reply.status(400).send({ error: CHAT_MESSAGES.tooLong });
     const { projectId, repo, messages } = parsed.data;
     const isDemo = projectId === deps.demo.projectId && repo === deps.demo.repo;
     if (!isDemo && !deps.hasValidKey(request)) return deps.denyUnauthorized(reply);
@@ -195,14 +209,14 @@ export function registerChatRoutes(app: FastifyInstance, deps: AnalysisDeps) {
     }
 
     if (!GEMINI_API_KEY) return reply.status(503).send({ error: 'The chat is not configured on this server.' });
-    if (!takeDailySlot()) return reply.status(429).send({ error: 'The demo chat has reached its daily limit. Please try again tomorrow.' });
+    if (!takeDailySlot()) return reply.status(429).send({ error: CHAT_MESSAGES.dailyLimit });
 
     try {
       const result = await answer(deps, projectId, repo, messages, cacheKey);
       return { answer: result.text, model: result.model };
     } catch (err) {
       request.log.error(err, 'Chat failed');
-      return reply.status(502).send({ error: 'The AI model is slow to respond right now. Please try again.' });
+      return reply.status(502).send({ error: CHAT_MESSAGES.modelBusy });
     }
   });
 }
